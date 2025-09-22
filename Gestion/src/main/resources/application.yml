@@ -1,0 +1,39 @@
+logging:
+    level:
+        org:
+            keycloak: DEBUG
+
+server:
+    port: 8081
+
+spring:
+    jpa:
+      hibernate:
+        ddl-auto: 'create-drop'
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+          format_sql: true
+    application:
+        name: Gestion
+    datasource:
+        password: ${DB_PASSWORD}
+        url: ${DB_URL}
+        username: postgres
+    jackson:
+        serialization:
+            write-dates-as-timestamps: false
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: ${ISSUER}
+                    jwk-set-uri: ${JWK_URL}
+
+eureka:
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
