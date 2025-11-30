@@ -35,6 +35,7 @@ build/
 ### Entorno ###
 **/.env
 **/.env.*
+.env
 
 ### test ###
 **/application-test.yml

@@ -1,0 +1,24 @@
+{
+  "type": "record",
+  "name": "TelemetriaVehiculo",
+  "namespace": "com.servicioTransporte.flota.eventos.vehiculo.seguimiento",
+  "doc": "Evento de telemetría en tiempo real enviado por el vehículo",
+  "fields": [
+    {"name": "vehicleId", "type": "string", "doc": "VIN o Placa"},
+    {"name": "latitude", "type": ["null", "double"], "default": null},
+    {"name": "longitude", "type": ["null", "double"], "default": null},
+    {"name": "speed", "type": ["null", "double"], "doc": "Velocidad en km/h", "default": null},
+    {"name": "batteryLevel", "type": ["null", "double"], "doc": "Porcentaje 0-100", "default": null},
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {"name": "additionalData", "type": ["null", {"type": "map","values": "string"}],
+      "doc": "Mapa para datos adicionales no estructurados",
+      "default": null
+    }
+  ]
+}

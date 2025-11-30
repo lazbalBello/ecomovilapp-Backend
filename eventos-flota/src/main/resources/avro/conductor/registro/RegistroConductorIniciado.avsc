@@ -1,0 +1,12 @@
+{
+"type": "record",
+"name": "RegistroConductorIniciado",
+"namespace": "com.servicioTransporte.flota.eventos.conductor.registro",
+"fields": [
+  {"name": "keycloakId", "type": "string"},
+  {"name": "nombre", "type": "string"},
+  {"name": "apellido", "type": "string"},
+  {"name": "dni", "type": "string"},
+  {"name": "categoriasLicencia", "type": {"type": "array", "items": "string"}}
+ ]
+}

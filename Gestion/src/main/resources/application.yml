@@ -7,9 +7,33 @@ server:
     port: 8081
 
 spring:
+    kafka:
+      bootstrap-servers:
+        - localhost:9094
+      properties:
+        schema.registry.url: http://localhost:8086
+        retries: 3
+        retry.backoff.ms: 1000
+      admin:
+        fail-fast: false
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+        retries: 3
+        acks: all
+        properties:
+          auto.register.schemas: true
+      consumer:
+        group-id: servicios-flota
+        auto-offset-reset: earliest
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+        properties:
+          specific.avro.reader: true
     jpa:
+      show-sql: true
       hibernate:
-        ddl-auto: 'create-drop'
+        ddl-auto: 'update'
       properties:
         hibernate:
           dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -20,6 +44,7 @@ spring:
         password: ${DB_PASSWORD}
         url: ${DB_URL}
         username: postgres
+        driver-class-name: org.postgresql.Driver
     jackson:
         serialization:
             write-dates-as-timestamps: false
@@ -29,6 +54,9 @@ spring:
                 jwt:
                     issuer-uri: ${ISSUER}
                     jwk-set-uri: ${JWK_URL}
+    thymeleaf:
+      cache: false
+      
 
 eureka:
   instance:

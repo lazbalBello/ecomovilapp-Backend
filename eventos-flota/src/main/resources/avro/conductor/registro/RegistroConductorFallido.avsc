@@ -1,0 +1,10 @@
+{
+"type": "record",
+"name": "RegistroConductorFallido",
+"namespace": "com.servicioTransporte.flota.eventos.conductor.registro",
+"fields": [
+  {"name": "keycloakId", "type": "string"},
+  {"name": "error", "type": "string"},
+  {"name": "timestamp", "type": "long"}
+ ]
+}

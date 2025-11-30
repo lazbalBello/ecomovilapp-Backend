@@ -1,0 +1,9 @@
+{
+"type": "record",
+"name": "UsuarioConductorCreado",
+"namespace": "com.servicioTransporte.flota.eventos.conductor.registro",
+"fields": [
+  {"name": "conductorId", "type": "long"},
+  {"name": "keycloakUserId", "type": "string"}
+ ]
+}
