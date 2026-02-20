@@ -11,7 +11,9 @@ import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.messaging.MessageChannel;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Configuration
 public class MqttConfig {
 
@@ -24,13 +26,23 @@ public class MqttConfig {
     @Value("${mqtt.topic}")
     private String topic;
 
+    @Value("${mqtt.username}")
+    private String username;
+
+    @Value("${mqtt.password}")
+    private String password;
+
     @Bean
     public MqttPahoClientFactory mqttClientFactory() {
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setServerURIs(new String[]{brokerUrl});
-        options.setCleanSession(true); // O false si quieres persistencia QoS
+        options.setServerURIs(new String[] { brokerUrl });
+        options.setCleanSession(true); // O false si quieres persistencia QoS (Cambiar en prod)
         options.setAutomaticReconnect(true);
+        options.setKeepAliveInterval(60);
+        options.setUserName(username);
+        options.setPassword(password.toCharArray());
+        log.info("📥 Kafka Reactivo: Procesando lote de {} eventos", password);
         factory.setConnectionOptions(options);
         return factory;
     }
@@ -46,8 +58,8 @@ public class MqttConfig {
     public MessageProducer inbound() {
         String uniqueClientId = clientId + "-" + System.currentTimeMillis();
 
-        MqttPahoMessageDrivenChannelAdapter adapter =
-                new MqttPahoMessageDrivenChannelAdapter(uniqueClientId, mqttClientFactory(), topic);
+        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(uniqueClientId,
+                mqttClientFactory(), topic);
 
         adapter.setCompletionTimeout(5000);
         adapter.setConverter(new DefaultPahoMessageConverter());
@@ -56,4 +68,3 @@ public class MqttConfig {
         return adapter;
     }
 }
-

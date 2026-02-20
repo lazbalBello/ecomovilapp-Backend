@@ -1,7 +1,7 @@
 package com.ServiciosTransporte.ControlDeIdentidad.Kafka.Consumers;
 
-import com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorFallido;
 import com.ServiciosTransporte.ControlDeIdentidad.Servicios.ServicioUsuarios;
+import com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorFallido;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

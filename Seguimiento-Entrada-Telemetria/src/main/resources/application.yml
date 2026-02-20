@@ -20,5 +20,5 @@ mqtt:
     broker-url: tcp://localhost:1883
     client-id: ingestion-service-client
     topic: vehicles/+/telemetry
-    username: admin
+    username: Seguimiento-Entrada-Telemetria
     password: ${EMQX_DASHBOARD_PASSWORD}

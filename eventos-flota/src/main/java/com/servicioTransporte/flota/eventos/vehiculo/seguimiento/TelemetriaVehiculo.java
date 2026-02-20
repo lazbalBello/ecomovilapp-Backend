@@ -15,10 +15,10 @@ import org.apache.avro.message.SchemaStore;
 /** Evento de telemetría en tiempo real enviado por el vehículo */
 @org.apache.avro.specific.AvroGenerated
 public class TelemetriaVehiculo extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 3166710212465692483L;
+  private static final long serialVersionUID = 7511152776249793849L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"TelemetriaVehiculo\",\"namespace\":\"com.servicioTransporte.flota.eventos.vehiculo.seguimiento\",\"doc\":\"Evento de telemetría en tiempo real enviado por el vehículo\",\"fields\":[{\"name\":\"vehicleId\",\"type\":\"string\",\"doc\":\"VIN o Placa\"},{\"name\":\"latitude\",\"type\":[\"null\",\"double\"],\"default\":null},{\"name\":\"longitude\",\"type\":[\"null\",\"double\"],\"default\":null},{\"name\":\"speed\",\"type\":[\"null\",\"double\"],\"doc\":\"Velocidad en km/h\",\"default\":null},{\"name\":\"batteryLevel\",\"type\":[\"null\",\"double\"],\"doc\":\"Porcentaje 0-100\",\"default\":null},{\"name\":\"timestamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"additionalData\",\"type\":[\"null\",{\"type\":\"map\",\"values\":\"string\"}],\"doc\":\"Mapa para datos adicionales no estructurados\",\"default\":null}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"TelemetriaVehiculo\",\"namespace\":\"com.servicioTransporte.flota.eventos.vehiculo.seguimiento\",\"doc\":\"Evento de telemetría en tiempo real enviado por el vehículo\",\"fields\":[{\"name\":\"vehicleId\",\"type\":\"string\",\"doc\":\"VIN o Placa\"},{\"name\":\"latitude\",\"type\":[\"null\",\"double\"],\"default\":null},{\"name\":\"longitude\",\"type\":[\"null\",\"double\"],\"default\":null},{\"name\":\"speed\",\"type\":[\"null\",\"double\"],\"doc\":\"Velocidad en km/h\",\"default\":null},{\"name\":\"batteryLevel\",\"type\":[\"null\",\"double\"],\"doc\":\"Porcentaje 0-100\",\"default\":null},{\"name\":\"timestamp\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}],\"default\":null},{\"name\":\"additionalData\",\"type\":[\"null\",{\"type\":\"map\",\"values\":\"string\"}],\"doc\":\"Mapa para datos adicionales no estructurados\",\"default\":null}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -112,7 +112,7 @@ public class TelemetriaVehiculo extends org.apache.avro.specific.SpecificRecordB
     this.longitude = longitude;
     this.speed = speed;
     this.batteryLevel = batteryLevel;
-    this.timestamp = timestamp.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+    this.timestamp = timestamp;
     this.additionalData = additionalData;
   }
 
@@ -135,23 +135,6 @@ public class TelemetriaVehiculo extends org.apache.avro.specific.SpecificRecordB
     case 6: return additionalData;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
-  }
-
-  private static final org.apache.avro.Conversion<?>[] conversions =
-      new org.apache.avro.Conversion<?>[] {
-      null,
-      null,
-      null,
-      null,
-      null,
-      new org.apache.avro.data.TimeConversions.TimestampMillisConversion(),
-      null,
-      null
-  };
-
-  @Override
-  public org.apache.avro.Conversion<?> getConversion(int field) {
-    return conversions[field];
   }
 
   // Used by DatumReader.  Applications should not call.
@@ -272,7 +255,7 @@ public class TelemetriaVehiculo extends org.apache.avro.specific.SpecificRecordB
    * @param value the value to set.
    */
   public void setTimestamp(java.time.Instant value) {
-    this.timestamp = value.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+    this.timestamp = value;
   }
 
   /**
@@ -651,7 +634,7 @@ public class TelemetriaVehiculo extends org.apache.avro.specific.SpecificRecordB
       */
     public com.servicioTransporte.flota.eventos.vehiculo.seguimiento.TelemetriaVehiculo.Builder setTimestamp(java.time.Instant value) {
       validate(fields()[5], value);
-      this.timestamp = value.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+      this.timestamp = value;
       fieldSetFlags()[5] = true;
       return this;
     }
@@ -670,6 +653,7 @@ public class TelemetriaVehiculo extends org.apache.avro.specific.SpecificRecordB
       * @return This builder.
       */
     public com.servicioTransporte.flota.eventos.vehiculo.seguimiento.TelemetriaVehiculo.Builder clearTimestamp() {
+      timestamp = null;
       fieldSetFlags()[5] = false;
       return this;
     }

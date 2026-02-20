@@ -12,18 +12,24 @@ eureka:
 spring:
   application:
     name: api-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
   security:
     oauth2:
         resourceserver:
           jwt:
             issuer-uri: ${ISSUER}
             jwk-set-uri: ${JWK_URL}
-    main:
-      web-application-type: REACTIVE
+  main:
+    web-application-type: REACTIVE
 
 microservicios:
   gestionUri: ${GESTION_URI}
   discoveriUri: ${DISCOVERI_URI}
   controlDeIdentidad: ${CONTROL_DE_IDENTIDAD_URI}
+  distribucionTelemetriaUri: ${SEGUIMIENTO_DISTRIBUCION_TELEMETRIA_URI}
   admin-secret: ${ADMIN_SECRET}
   user-secret: ${USER_SECRET}

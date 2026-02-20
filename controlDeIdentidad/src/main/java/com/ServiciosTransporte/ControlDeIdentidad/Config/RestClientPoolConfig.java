@@ -12,6 +12,7 @@ public class RestClientPoolConfig {
     @Bean(destroyMethod = "close")
     public GenericObjectPool<ResteasyClient> loginClientPool() {
         GenericObjectPoolConfig<ResteasyClient> poolConfig = new GenericObjectPoolConfig<>();
+        poolConfig.setJmxEnabled(false);
         poolConfig.setMaxTotal(10);
         poolConfig.setMinIdle(2);
         poolConfig.setMaxIdle(5);

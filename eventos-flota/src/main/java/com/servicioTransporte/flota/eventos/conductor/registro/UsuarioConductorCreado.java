@@ -5,6 +5,7 @@
  */
 package com.servicioTransporte.flota.eventos.conductor.registro;
 
+import org.apache.avro.generic.GenericArray;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.util.Utf8;
 import org.apache.avro.message.BinaryMessageEncoder;
@@ -13,10 +14,10 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 9128686559129414901L;
+  private static final long serialVersionUID = -8733184628050966425L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"UsuarioConductorCreado\",\"namespace\":\"com.servicioTransporte.flota.eventos.conductor\",\"fields\":[{\"name\":\"conductorId\",\"type\":\"long\"},{\"name\":\"keycloakUserId\",\"type\":\"string\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"UsuarioConductorCreado\",\"namespace\":\"com.servicioTransporte.flota.eventos.conductor.registro\",\"fields\":[{\"name\":\"conductorId\",\"type\":\"long\"},{\"name\":\"keycloakUserId\",\"type\":\"string\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -157,8 +158,8 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
    * Creates a new UsuarioConductorCreado RecordBuilder.
    * @return A new UsuarioConductorCreado RecordBuilder
    */
-  public static UsuarioConductorCreado.Builder newBuilder() {
-    return new UsuarioConductorCreado.Builder();
+  public static com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder newBuilder() {
+    return new com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder();
   }
 
   /**
@@ -166,11 +167,11 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
    * @param other The existing builder to copy.
    * @return A new UsuarioConductorCreado RecordBuilder
    */
-  public static UsuarioConductorCreado.Builder newBuilder(UsuarioConductorCreado.Builder other) {
+  public static com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder newBuilder(com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder other) {
     if (other == null) {
-      return new UsuarioConductorCreado.Builder();
+      return new com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder();
     } else {
-      return new UsuarioConductorCreado.Builder(other);
+      return new com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder(other);
     }
   }
 
@@ -179,11 +180,11 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
    * @param other The existing instance to copy.
    * @return A new UsuarioConductorCreado RecordBuilder
    */
-  public static UsuarioConductorCreado.Builder newBuilder(UsuarioConductorCreado other) {
+  public static com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder newBuilder(com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado other) {
     if (other == null) {
-      return new UsuarioConductorCreado.Builder();
+      return new com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder();
     } else {
-      return new UsuarioConductorCreado.Builder(other);
+      return new com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder(other);
     }
   }
 
@@ -206,7 +207,7 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(UsuarioConductorCreado.Builder other) {
+    private Builder(com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder other) {
       super(other);
       if (isValidValue(fields()[0], other.conductorId)) {
         this.conductorId = data().deepCopy(fields()[0].schema(), other.conductorId);
@@ -222,7 +223,7 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
      * Creates a Builder by copying an existing UsuarioConductorCreado instance
      * @param other The existing instance to copy.
      */
-    private Builder(UsuarioConductorCreado other) {
+    private Builder(com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado other) {
       super(SCHEMA$, MODEL$);
       if (isValidValue(fields()[0], other.conductorId)) {
         this.conductorId = data().deepCopy(fields()[0].schema(), other.conductorId);
@@ -248,7 +249,7 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
       * @param value The value of 'conductorId'.
       * @return This builder.
       */
-    public UsuarioConductorCreado.Builder setConductorId(long value) {
+    public com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder setConductorId(long value) {
       validate(fields()[0], value);
       this.conductorId = value;
       fieldSetFlags()[0] = true;
@@ -268,7 +269,7 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
       * Clears the value of the 'conductorId' field.
       * @return This builder.
       */
-    public UsuarioConductorCreado.Builder clearConductorId() {
+    public com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder clearConductorId() {
       fieldSetFlags()[0] = false;
       return this;
     }
@@ -287,7 +288,7 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
       * @param value The value of 'keycloakUserId'.
       * @return This builder.
       */
-    public UsuarioConductorCreado.Builder setKeycloakUserId(java.lang.CharSequence value) {
+    public com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder setKeycloakUserId(java.lang.CharSequence value) {
       validate(fields()[1], value);
       this.keycloakUserId = value;
       fieldSetFlags()[1] = true;
@@ -307,7 +308,7 @@ public class UsuarioConductorCreado extends org.apache.avro.specific.SpecificRec
       * Clears the value of the 'keycloakUserId' field.
       * @return This builder.
       */
-    public UsuarioConductorCreado.Builder clearKeycloakUserId() {
+    public com.servicioTransporte.flota.eventos.conductor.registro.UsuarioConductorCreado.Builder clearKeycloakUserId() {
       keycloakUserId = null;
       fieldSetFlags()[1] = false;
       return this;

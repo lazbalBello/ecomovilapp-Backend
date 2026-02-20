@@ -5,6 +5,7 @@
  */
 package com.servicioTransporte.flota.eventos.conductor.registro;
 
+import org.apache.avro.generic.GenericArray;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.util.Utf8;
 import org.apache.avro.message.BinaryMessageEncoder;
@@ -13,10 +14,10 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class RegistroConductorIniciado extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 2175803008874866593L;
+  private static final long serialVersionUID = 7229552082770943986L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"RegistroConductorIniciado\",\"namespace\":\"com.servicioTransporte.flota.eventos.conductor\",\"fields\":[{\"name\":\"keycloakId\",\"type\":\"string\"},{\"name\":\"nombre\",\"type\":\"string\"},{\"name\":\"apellido\",\"type\":\"string\"},{\"name\":\"dni\",\"type\":\"string\"},{\"name\":\"categoriasLicencia\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"RegistroConductorIniciado\",\"namespace\":\"com.servicioTransporte.flota.eventos.conductor.registro\",\"fields\":[{\"name\":\"keycloakId\",\"type\":\"string\"},{\"name\":\"nombre\",\"type\":\"string\"},{\"name\":\"apellido\",\"type\":\"string\"},{\"name\":\"dni\",\"type\":\"string\"},{\"name\":\"categoriasLicencia\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -223,8 +224,8 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
    * Creates a new RegistroConductorIniciado RecordBuilder.
    * @return A new RegistroConductorIniciado RecordBuilder
    */
-  public static RegistroConductorIniciado.Builder newBuilder() {
-    return new RegistroConductorIniciado.Builder();
+  public static com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder newBuilder() {
+    return new com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder();
   }
 
   /**
@@ -232,11 +233,11 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
    * @param other The existing builder to copy.
    * @return A new RegistroConductorIniciado RecordBuilder
    */
-  public static RegistroConductorIniciado.Builder newBuilder(RegistroConductorIniciado.Builder other) {
+  public static com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder newBuilder(com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder other) {
     if (other == null) {
-      return new RegistroConductorIniciado.Builder();
+      return new com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder();
     } else {
-      return new RegistroConductorIniciado.Builder(other);
+      return new com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder(other);
     }
   }
 
@@ -245,11 +246,11 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
    * @param other The existing instance to copy.
    * @return A new RegistroConductorIniciado RecordBuilder
    */
-  public static RegistroConductorIniciado.Builder newBuilder(RegistroConductorIniciado other) {
+  public static com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder newBuilder(com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado other) {
     if (other == null) {
-      return new RegistroConductorIniciado.Builder();
+      return new com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder();
     } else {
-      return new RegistroConductorIniciado.Builder(other);
+      return new com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder(other);
     }
   }
 
@@ -275,7 +276,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(RegistroConductorIniciado.Builder other) {
+    private Builder(com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder other) {
       super(other);
       if (isValidValue(fields()[0], other.keycloakId)) {
         this.keycloakId = data().deepCopy(fields()[0].schema(), other.keycloakId);
@@ -303,7 +304,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
      * Creates a Builder by copying an existing RegistroConductorIniciado instance
      * @param other The existing instance to copy.
      */
-    private Builder(RegistroConductorIniciado other) {
+    private Builder(com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado other) {
       super(SCHEMA$, MODEL$);
       if (isValidValue(fields()[0], other.keycloakId)) {
         this.keycloakId = data().deepCopy(fields()[0].schema(), other.keycloakId);
@@ -341,7 +342,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * @param value The value of 'keycloakId'.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder setKeycloakId(java.lang.CharSequence value) {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder setKeycloakId(java.lang.CharSequence value) {
       validate(fields()[0], value);
       this.keycloakId = value;
       fieldSetFlags()[0] = true;
@@ -361,7 +362,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * Clears the value of the 'keycloakId' field.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder clearKeycloakId() {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder clearKeycloakId() {
       keycloakId = null;
       fieldSetFlags()[0] = false;
       return this;
@@ -381,7 +382,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * @param value The value of 'nombre'.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder setNombre(java.lang.CharSequence value) {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder setNombre(java.lang.CharSequence value) {
       validate(fields()[1], value);
       this.nombre = value;
       fieldSetFlags()[1] = true;
@@ -401,7 +402,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * Clears the value of the 'nombre' field.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder clearNombre() {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder clearNombre() {
       nombre = null;
       fieldSetFlags()[1] = false;
       return this;
@@ -421,7 +422,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * @param value The value of 'apellido'.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder setApellido(java.lang.CharSequence value) {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder setApellido(java.lang.CharSequence value) {
       validate(fields()[2], value);
       this.apellido = value;
       fieldSetFlags()[2] = true;
@@ -441,7 +442,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * Clears the value of the 'apellido' field.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder clearApellido() {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder clearApellido() {
       apellido = null;
       fieldSetFlags()[2] = false;
       return this;
@@ -461,7 +462,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * @param value The value of 'dni'.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder setDni(java.lang.CharSequence value) {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder setDni(java.lang.CharSequence value) {
       validate(fields()[3], value);
       this.dni = value;
       fieldSetFlags()[3] = true;
@@ -481,7 +482,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * Clears the value of the 'dni' field.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder clearDni() {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder clearDni() {
       dni = null;
       fieldSetFlags()[3] = false;
       return this;
@@ -501,7 +502,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * @param value The value of 'categoriasLicencia'.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder setCategoriasLicencia(java.util.List<java.lang.CharSequence> value) {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder setCategoriasLicencia(java.util.List<java.lang.CharSequence> value) {
       validate(fields()[4], value);
       this.categoriasLicencia = value;
       fieldSetFlags()[4] = true;
@@ -521,7 +522,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       * Clears the value of the 'categoriasLicencia' field.
       * @return This builder.
       */
-    public RegistroConductorIniciado.Builder clearCategoriasLicencia() {
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder clearCategoriasLicencia() {
       categoriasLicencia = null;
       fieldSetFlags()[4] = false;
       return this;

@@ -6,11 +6,13 @@ services:
     environment:
       POSTGRES_DB: ms_gestion
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Blb2401
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5431:5431"
     expose:
       - 5431
+    env_file:
+      - .env
     command:
       - "postgres"
       - "-p"
@@ -20,7 +22,7 @@ services:
     volumes:
       - gestion_postgres_data:/var/lib/postgresql/data
     networks:
-        - app-network
+      - app-network
 
   db-keycloak:
     container_name: db-keycloak
@@ -29,11 +31,13 @@ services:
     environment:
       POSTGRES_DB: db_keycloak
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Blb2401
+      POSTGRES_PASSWORD: ${DB_KEYCLOAK_PASSWORD}
     ports:
       - "5433:5433"
     expose:
       - 5433
+    env_file:
+      - .env
     command:
       - "postgres"
       - "-p"
@@ -59,11 +63,13 @@ services:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db-keycloak:5433/db_keycloak
       KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: Blb2401
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB_PASSWORD: ${DB_KEYCLOAK_PASSWORD}
+      KEYCLOAK_ADMIN: ${USER_CONSOLE}
+      KEYCLOAK_ADMIN_PASSWORD: ${USER_PASSWORD}
       KC_HTTP_PORT: 9090
       KC_HOSTNAME_STRICT: "false"
+    env_file:
+      - .env
     volumes:
       - keycloak_data:/opt/keycloak/data
     networks:
@@ -146,6 +152,7 @@ services:
       EMQX_DASHBOARD__DEFAULT_USERNAME: admin
       EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD}
       EMQX_LOG__LEVEL: warning
+      EMQX_ALLOW_ANONYMOUS: false
     env_file:
       - .env
     networks:
@@ -160,9 +167,7 @@ services:
     ports:
       - "6379:6379"
     command: >
-      redis-server
-      --appendonly yes          
-      --requirepass ${REDIS_PASSWORD:-redispass123}
+      redis-server --appendonly yes           --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     networks:
@@ -174,7 +179,24 @@ services:
       retries: 3
     restart: unless-stopped
     mem_limit: "128m"
-    cpus: "0.2"
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
+    ports:
+      - "8087:8087"
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - redis
 
 volumes:
   gestion_postgres_data:
@@ -183,6 +205,7 @@ volumes:
   kafka_data:
   emqx_data:
   redis_data:
+
 
 networks:
   app-network:

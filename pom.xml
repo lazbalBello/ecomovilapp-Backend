@@ -41,6 +41,8 @@
 		<module>servidorDeRegistroDeServicios</module>
 		<module>api-gateway</module>
         <module>eventos-flota</module>
+		<module>Seguimiento-Distribucion-Telemetria</module>
+		<module>Seguimiento-Distribucion-Reactivo</module>
     </modules>
 
 	<dependencies>
@@ -49,6 +51,11 @@
 			<groupId>io.github.cdimascio</groupId>
 			<artifactId>dotenv-java</artifactId>
 			<version>2.2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>me.paulschwarz</groupId>
+			<artifactId>spring-dotenv</artifactId>
+			<version>4.0.0</version>
 		</dependency>
 
 	</dependencies>

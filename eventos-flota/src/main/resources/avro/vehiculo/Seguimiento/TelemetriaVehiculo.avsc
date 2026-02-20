@@ -11,10 +11,14 @@
     {"name": "batteryLevel", "type": ["null", "double"], "doc": "Porcentaje 0-100", "default": null},
     {
       "name": "timestamp",
-      "type": {
-        "type": "long",
-        "logicalType": "timestamp-millis"
-      }
+      "type": [
+        "null",
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+      ],
+      "default": null
     },
     {"name": "additionalData", "type": ["null", {"type": "map","values": "string"}],
       "doc": "Mapa para datos adicionales no estructurados",
