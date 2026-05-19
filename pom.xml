@@ -43,6 +43,7 @@
         <module>eventos-flota</module>
 		<module>Seguimiento-Distribucion-Telemetria</module>
 		<module>Seguimiento-Distribucion-Reactivo</module>
+		<module>Ecomoviles-Ingestor-Reactivo</module>
     </modules>
 
 	<dependencies>

@@ -9,9 +9,9 @@ server:
 spring:
     kafka:
       bootstrap-servers:
-        - localhost:9094
+        - ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
       properties:
-        schema.registry.url: http://localhost:8086
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8086}
         retries: 3
         retry.backoff.ms: 1000
       admin:
@@ -60,8 +60,9 @@ spring:
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:false}
     instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
   client:
     service-url:
-      default-zone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}

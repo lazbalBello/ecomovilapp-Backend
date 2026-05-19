@@ -9,19 +9,17 @@ import org.springframework.security.config.Customizer;
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        return http
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/auth/**")
-                        .permitAll()
-                        .anyExchange()
-                        .authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
-                )
-                .build();
-    }
+        @Bean
+        public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+                return http
+                                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                                .authorizeExchange(exchanges -> exchanges
+                                                .pathMatchers("/auth/**", "/telemetria/v1/webhook")
+                                                .permitAll()
+                                                .anyExchange()
+                                                .authenticated())
+                                .oauth2ResourceServer(oauth2 -> oauth2
+                                                .jwt(Customizer.withDefaults()))
+                                .build();
+        }
 }

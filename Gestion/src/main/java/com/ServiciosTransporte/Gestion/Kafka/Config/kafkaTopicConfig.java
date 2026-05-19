@@ -9,7 +9,7 @@ import org.springframework.kafka.config.TopicBuilder;
 public class kafkaTopicConfig {
 
     @Bean
-    public NewTopic topicDeRegistroDeConductores(){
+    public NewTopic topicDeRegistroDeConductores() {
         return TopicBuilder.name("inicio-registro-conductor")
                 .partitions(3)
                 .replicas(1)
@@ -17,15 +17,15 @@ public class kafkaTopicConfig {
     }
 
     @Bean
-    public NewTopic topicDeSucesoDeRegistroDeConductores(){
-        return TopicBuilder.name("suceso-registro-conductor")
+    public NewTopic topicDeSucesoDeRegistroDeConductores() {
+        return TopicBuilder.name("eliminar-conductor")
                 .partitions(3)
                 .replicas(1)
                 .build();
     }
 
     @Bean
-    public NewTopic topicDeRegistroDeConductoresFallido(){
+    public NewTopic topicDeRegistroDeConductoresFallido() {
         return TopicBuilder.name("registro-conductor-fallido")
                 .partitions(3)
                 .replicas(1)

@@ -3,11 +3,12 @@ server:
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:false}
     instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
   client:
     service-url:
-      default-zone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
 
 spring:
   application:
@@ -30,6 +31,6 @@ microservicios:
   gestionUri: ${GESTION_URI}
   discoveriUri: ${DISCOVERI_URI}
   controlDeIdentidad: ${CONTROL_DE_IDENTIDAD_URI}
-  distribucionTelemetriaUri: ${SEGUIMIENTO_DISTRIBUCION_TELEMETRIA_URI}
+  distribucionTelemetriaUri: ${SEGUIMIENTO_DISTRIBUCION_REACTIVO_URI}
   admin-secret: ${ADMIN_SECRET}
   user-secret: ${USER_SECRET}

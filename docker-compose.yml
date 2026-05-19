@@ -1,4 +1,34 @@
 services:
+  # ==========================================
+  # EDGE PROXY (REVERSE PROXY)
+  # ==========================================
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.tcp_gps.address=:5001" # Nuevo entrypoint para tráfico GPS TCP
+      #- "--entrypoints.websecure.address=:443" # Para producción con TLS
+    ports:
+      - "80:80"
+      - "8080:8080" # Dashboard Traefik (remover en Prod)
+      - "5001:5001" # Exponer puerto TCP para los dispositivos hardware
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================
+  # INFRAESTRUCTURA (DATABASES / BROKERS)
+  # ==========================================
   db-gestion:
     container_name: db-gestion
     image: postgres:15.15
@@ -23,6 +53,18 @@ services:
       - gestion_postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -p 5431" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "512m"
 
   db-keycloak:
     container_name: db-keycloak
@@ -32,10 +74,6 @@ services:
       POSTGRES_DB: db_keycloak
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_KEYCLOAK_PASSWORD}
-    ports:
-      - "5433:5433"
-    expose:
-      - 5433
     env_file:
       - .env
     command:
@@ -48,6 +86,18 @@ services:
       - db_keycloak_postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -p 5433" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "512m"
 
   keycloak:
     container_name: keycloak
@@ -58,7 +108,8 @@ services:
     expose:
       - 9090
     depends_on:
-      - db-keycloak
+      db-keycloak:
+        condition: service_healthy
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db-keycloak:5433/db_keycloak
@@ -74,12 +125,22 @@ services:
       - keycloak_data:/opt/keycloak/data
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9090 || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 45s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "768m"
 
   kafka:
     image: confluentinc/cp-kafka:7.7.0
     container_name: kafka
-    ports:
-      - "9094:9094"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -92,27 +153,49 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    ports:
+      - "9094:9094" # Acceso externo temporal antes de dockerizar
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 | grep -q 'ApiVersion' || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "1g"
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
     depends_on:
-      - kafka
-      - schema-registry
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
     environment:
       KAFKA_CLUSTERS_0_NAME: flota-kraft-cluster
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_KRAFT: "true"
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8086
     ports:
-      - "8085:8080"
+      - "8085:8080" # Dashboard privado (Considerar usar VPN para acceso)
     networks:
       - app-network
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "384m"
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.7.0
@@ -125,41 +208,113 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8086/ || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "512m"
 
   emqx:
     image: emqx/emqx:5.4.1
     container_name: emqx
     ports:
-      - "1883:1883"
-      - "18083:18083"
-      - "1884:1884"
-      - "1885:1885"
+      - "1883:1883"   # MQTT Directo TCP (Hardware Flota)
+      - "1884:1884"   # MQTT sobre WebSockets (Browsers)
+      - "1885:1885"   # MQTT sobre WebSockets Seguro (WSS)
+      - "18083:18083" # Dashboard EMQX
     environment:
-      EMQX_NODE_NAME: "emqx@node1.emqx.io"
-      EMQX_NAME: emqx
-      EMQX_HOST: emqx
-      EMQX_MAX_CONNECTIONS: 200
-      EMQX_LISTENER__TCP__EXTERNAL__ACCEPTORS: 4
-      EMQX_LISTENER__TCP__EXTERNAL__MAX_CONNECTIONS: 500
-      EMQX_MQTT__MAX_PACKET_SIZE: 1MB
-      EMQX_MQTT__MAX_INFLIGHT: 100
-      EMQX_LISTENERS__WS__DEFAULT__BIND: "0.0.0.0:1884"
-      EMQX_LISTENERS__WSS__DEFAULT__BIND: "0.0.0.0:1885"
-      EMQX_LISTENER__SSL__EXTERNAL__ENABLE: "false"
-      EMQX_DASHBOARD__DEFAULT_USERNAME: admin
+      # Las credenciales del dashboard se mantienen dinámicas vía .env
+      EMQX_DASHBOARD__DEFAULT_USERNAME: ${EMQX_DASHBOARD_USERNAME}
       EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD}
-      EMQX_LOG__LEVEL: warning
-      EMQX_ALLOW_ANONYMOUS: false
     env_file:
       - .env
     networks:
       - app-network
     volumes:
       - emqx_data:/opt/emqx/data
+      - ./emqx/emqx.conf:/opt/emqx/etc/emqx.conf:ro
+      - ./emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "emqx", "ctl", "status" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "512m"
+
+  # Contenedor de inicialización: crea los usuarios MQTT en EMQX via REST API
+  emqx-init:
+    image: alpine:3.19
+    container_name: emqx-init
+    depends_on:
+      emqx:
+        condition: service_healthy
+    env_file:
+      - .env
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        apk add --no-cache curl jq
+        
+        echo "Esperando a que la API HTTP de EMQX este lista..."
+        sleep 5
+        
+        # 1. Obtener JWT Token
+        LOGIN_RES=$$(curl -s -X POST http://emqx:18083/api/v5/login \
+          -H "Content-Type: application/json" \
+          -d "{\"username\":\"admin\",\"password\":\"$${EMQX_DASHBOARD_PASSWORD}\"}")
+        
+        TOKEN=$$(echo $$LOGIN_RES | jq -r '.token')
+        if [ "$$TOKEN" = "null" ] || [ -z "$$TOKEN" ]; then
+          echo "[ERROR] No se pudo obtener el token JWT de EMQX. Respuesta: $$LOGIN_RES"
+          exit 1
+        fi
+        echo "[OK] Token JWT obtenido correctamente"
+
+        BASE_URL="http://emqx:18083/api/v5/authentication/password_based:built_in_database/users"
+
+        crear_usuario() {
+          USER_ID=$$1
+          PASSWORD=$$2
+          HTTP_CODE=$$(curl -s -o /dev/null -w "%{http_code}" \
+            --retry 6 --retry-delay 5 --retry-connrefused --max-time 10 \
+            -X POST "$$BASE_URL" \
+            -H "Authorization: Bearer $$TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"user_id\":\"$$USER_ID\",\"password\":\"$$PASSWORD\"}")
+          if [ "$$HTTP_CODE" = "201" ] || [ "$$HTTP_CODE" = "409" ]; then
+            echo "[OK] Usuario '$$USER_ID' listo (HTTP $$HTTP_CODE)"
+          else
+            echo "[ERROR] Fallo creando '$$USER_ID' (HTTP $$HTTP_CODE)" && exit 1
+          fi
+        }
+
+        echo "=== Inicializando usuarios MQTT en EMQX ==="
+        crear_usuario "servicio-distribucion" "${SERVICIO_DISTRIBUCION_PASSWORD}"
+        crear_usuario "web-admin"             "${WEB_ADMIN_PASSWORD}"
+        crear_usuario "web-publico"           "${WEB_PUBLICO_PASSWORD}"
+        echo "=== Inicializacion completada ==="
+    networks:
+      - app-network
+    restart: "no"
 
   redis:
     image: redis:7-alpine
@@ -167,36 +322,249 @@ services:
     ports:
       - "6379:6379"
     command: >
-      redis-server --appendonly yes           --requirepass ${REDIS_PASSWORD}
+      redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     networks:
       - app-network
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
       interval: 10s
       timeout: 3s
       retries: 3
+      start_period: 5s
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     mem_limit: "128m"
 
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: redis-commander
+  # ==========================================
+  # MICROSERVICIOS ECOMÓVILES (BUILD DESDE MAVEN)
+  # ==========================================
+  servidor-registro:
+    build:
+      context: .
+      dockerfile: servidorDeRegistroDeServicios/Dockerfile
+    container_name: eureka-server
     environment:
-      - REDIS_HOSTS=local:redis:6379
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - HTTP_USER=admin
-      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
+      - SERVER_PORT=8761
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
     ports:
-      - "8087:8087"
+      - "8761:8761"
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "384m"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
     depends_on:
-      - redis
+      servidor-registro:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - ISSUER=http://keycloak:9090/realms/realm-dev
+      - JWK_URL=http://keycloak:9090/realms/realm-dev/protocol/openid-connect/certs
+      - DISCOVERI_URI=http://eureka-server:8761
+      - GESTION_URI=lb://Gestion
+      - CONTROL_DE_IDENTIDAD_URI=lb://controlDeIdentidad
+      - SEGUIMIENTO_DISTRIBUCION_REACTIVO_URI=lb://Seguimiento-Distribucion-Reactivo
+      - ADMIN_SECRET=${ADMIN_SECRET}
+      - USER_SECRET=${USER_SECRET}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    env_file:
+      - .env
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway.rule=PathPrefix(`/`)"
+      - "traefik.http.services.gateway.loadbalancer.server.port=8080"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "384m"
+
+  control-de-identidad:
+    build:
+      context: .
+      dockerfile: controlDeIdentidad/Dockerfile
+    container_name: controlDeIdentidad
+    depends_on:
+      servidor-registro:
+        condition: service_healthy
+      db-keycloak:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - DB_URL=jdbc:postgresql://db-keycloak:5433/db_keycloak
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=${DB_KEYCLOAK_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8086
+      - SERVER_URL=http://keycloak:9090
+      - ISSUER=http://keycloak:9090/realms/realm-dev
+      - JWK_URL=http://keycloak:9090/realms/realm-dev/protocol/openid-connect/certs
+    env_file:
+      - .env
+    networks:
+      - app-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "384m"
+
+  gestion:
+    build:
+      context: .
+      dockerfile: Gestion/Dockerfile
+    container_name: Gestion
+    depends_on:
+      servidor-registro:
+        condition: service_healthy
+      db-gestion:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - DB_URL=jdbc:postgresql://db-gestion:5431/ms_gestion
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=${DB_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8086
+      - ISSUER=http://keycloak:9090/realms/realm-dev
+      - JWK_URL=http://keycloak:9090/realms/realm-dev/protocol/openid-connect/certs
+    env_file:
+      - .env
+    networks:
+      - app-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "512m"
+
+  ecomoviles-ingestor-reactivo:
+    build:
+      context: .
+      dockerfile: Ecomoviles-Ingestor-Reactivo/Dockerfile
+    container_name: ecomoviles-ingestor-reactivo
+    depends_on:
+      servidor-registro:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8086
+    env_file:
+      - .env
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      # Traefik Actuando como Balanceador TCP
+      - "traefik.tcp.routers.ingestor.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.ingestor.entrypoints=tcp_gps"
+      - "traefik.tcp.services.ingestor.loadbalancer.server.port=5001"
+    deploy:
+      mode: replicated
+      replicas: 1 # Puedes escalar cambiando este número (p. ej., a 3) y Traefik hará Round-Robin TCP automáticamente.
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "384m"
+
+  seguimiento-distribucion-reactivo:
+    build:
+      context: .
+      dockerfile: Seguimiento-Distribucion-Reactivo/Dockerfile
+    container_name: Seguimiento-Distribucion-Reactivo
+    depends_on:
+      servidor-registro:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      emqx:
+        condition: service_healthy
+      emqx-init:
+        condition: service_completed_successfully
+      schema-registry:
+        condition: service_healthy
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8086
+      - MQTT_URL=tcp://emqx:1883
+      - EMQX_USERNAME=${EMQX_USERNAME}
+      - SERVICIO_DISTRIBUCION_PASSWORD=${SERVICIO_DISTRIBUCION_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ISSUER=http://keycloak:9090/realms/realm-dev
+      - JWK_URL=http://keycloak:9090/realms/realm-dev/protocol/openid-connect/certs
+    env_file:
+      - .env
+    networks:
+      - app-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: "384m"
 
 volumes:
   gestion_postgres_data:
@@ -205,7 +573,6 @@ volumes:
   kafka_data:
   emqx_data:
   redis_data:
-
 
 networks:
   app-network:

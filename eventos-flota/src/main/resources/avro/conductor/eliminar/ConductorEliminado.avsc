@@ -1,0 +1,11 @@
+{
+"type": "record",
+"name": "ConductorEliminado",
+"namespace": "com.servicioTransporte.flota.eventos.conductor.eliminar",
+"fields": [
+  {"name": "keycloakId", "type": "string"},
+  {"name": "nombre", "type": "string"},
+  {"name": "apellido", "type": "string"},
+  {"name": "dni", "type": "string"}
+ ]
+}

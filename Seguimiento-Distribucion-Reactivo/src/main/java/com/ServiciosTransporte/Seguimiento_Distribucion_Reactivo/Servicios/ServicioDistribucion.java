@@ -2,24 +2,26 @@ package com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Servicios;
 
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.EstadoCirculacion;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.EstadoDto;
+import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.TelemetriaJsonDto;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.VehiculoRedisDto;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Mappers.TelemetriaMapper;
+import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Mqtt.Config.MqttPublisherConfig.MqttPublisher;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Utils.GeoUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.servicioTransporte.flota.eventos.vehiculo.seguimiento.TelemetriaVehiculo;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-import reactor.kafka.receiver.KafkaReceiver;
-import reactor.kafka.receiver.ReceiverRecord;
+import reactor.kafka.sender.KafkaSender;
+import reactor.kafka.sender.SenderRecord;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,131 +33,139 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ServicioDistribucion {
 
     private final ReactiveStringRedisTemplate redisTemplate;
-    private final KafkaReceiver<String, TelemetriaVehiculo> kafkaReceiver;
     private final TelemetriaMapper telemetriaMapper;
     private final ObjectMapper objectMapper;
+    private final MqttPublisher mqttPublisher;
 
-    private final Sinks.Many<String> sinkAdmin = Sinks.many().replay().latest();
-    private final Sinks.Many<String> sinkPublico = Sinks.many().replay().latest();
+    @Value("${spring.mqtt.topics.admin:vehiculos/%s/telemetria/admin}")
+    private String topicAdminFormat;
+
+    @Value("${spring.mqtt.topics.publico:vehiculos/%s/telemetria/publico}")
+    private String topicPublicoFormat;
 
     private static final String ESTADO_DEFECTO = EstadoCirculacion.ACTIVO.name();
     private static final double UMBRAL_MOVIMIENTO_METROS = 10.0;
     private static final long TIEMPO_MINIMO_ENVIO_MS = 2000;
+
+    // Cambiado a String para facilitar el manejo con los datos de Avro
     private final Map<String, Long> ultimaActualizacionWS = new ConcurrentHashMap<>();
 
-    @PostConstruct
-    public void iniciarConsumo() {
-        kafkaReceiver.receive()
-                // 1. Agrupamiento (Batching) similar a tu configuración anterior
-                .bufferTimeout(500, Duration.ofMillis(500))
-                .flatMap(this::procesarLote)
-                .subscribe(
-                        null, // OnNext (ya manejado internamente)
-                        error -> log.error("❌ Error crítico en flujo reactivo de telemetría", error)
-                );
+    /**
+     * Nuevo punto de entrada que procesa directamente el evento Avro desde Kafka.
+     */
+    public Mono<Void> procesarTelemetriaKafka(TelemetriaVehiculo evento) {
+        // 1. Validación de vehicleId (Resiliencia ante campos vacíos)
+        if (evento.getVehicleId() == null || evento.getVehicleId().toString().trim().isEmpty()) {
+            log.warn("VehicleId vacío recibido desde Kafka. Se descarta el evento.");
+            return Mono.empty();
+        }
+
+        String vehiculoId = evento.getVehicleId().toString();
+
+        // 2. Validación de rangos geográficos (Evitar saltos del GPS a coordenadas 0,0)
+        double lat = evento.getLatitude();
+        double lon = evento.getLongitude();
+
+        if (lat < -90 || lat > 90 || lon < -180 || lon > 180 || (lat == 0.0 && lon == 0.0)) {
+            log.warn("Telemetría corrupta o fuera de rango descartada para vehículo {}: lat={}, lon={}",
+                    vehiculoId, lat, lon);
+            return Mono.empty();
+        }
+
+        // 3. Flujo principal: Evaluar movimiento, guardar en Redis y publicar en EMQX
+        return procesarVehiculoIndividual(evento, vehiculoId);
     }
 
-    private Mono<Void> procesarLote(List<ReceiverRecord<String, TelemetriaVehiculo>> registros) {
-        if (registros.isEmpty()) return Mono.empty();
+    private Mono<Void> procesarVehiculoIndividual(TelemetriaVehiculo evento, String vehiculoId) {
+        String key = "vehiculo:" + vehiculoId;
 
-        log.info("📥 Kafka Reactivo: Procesando lote de {} eventos", registros.size());
-
-        // Deduplicación (misma lógica de negocio: quedarse con el último del lote)
-        return Flux.fromIterable(registros)
-                .groupBy(record -> record.value().getVehicleId())
-                .flatMap(group -> group.reduce((a, b) -> b)) // Reducir al más reciente por ID
-                .flatMap(record -> procesarVehiculoIndividual(record.value()))
-                .then();
-    }
-
-    private Mono<Void> procesarVehiculoIndividual(TelemetriaVehiculo evento) {
-        String key = "vehiculo:" + evento.getVehicleId();
-
-        // Operación No Bloqueante a Redis
         return redisTemplate.opsForHash().multiGet(key, List.of("lat", "lon", "status"))
                 .flatMap(redisData -> {
                     boolean actualizar = false;
                     boolean pasoElThrottling = false;
 
-                    // Lógica de Negocio (Replicada Exactamente)
-                    // Nota: redisData.get(0) es lat, get(1) es lon, get(2) es status
                     EstadoCirculacion estadoActual = parseEstado(redisData.size() > 2 ? redisData.get(2) : null);
 
-                    // Validar movimiento
+                    // Validar si el vehículo se ha movido más del umbral permitido
                     if (redisData.size() >= 2 && redisData.get(0) != null && redisData.get(1) != null) {
                         try {
                             double latAnt = Double.parseDouble(redisData.get(0).toString());
                             double lonAnt = Double.parseDouble(redisData.get(1).toString());
-                            double distancia = GeoUtils.calcularDistanciaMetros(latAnt, lonAnt, evento.getLatitude(), evento.getLongitude());
+                            double distancia = GeoUtils.calcularDistanciaMetros(latAnt, lonAnt,
+                                    evento.getLatitude(), evento.getLongitude());
 
                             if (distancia >= UMBRAL_MOVIMIENTO_METROS) {
                                 actualizar = true;
                             }
                         } catch (NumberFormatException e) {
-                            actualizar = true; // Ante error de datos, actualizar
+                            actualizar = true; // Ante datos corruptos previos en Redis, forzar actualización
                         }
                     } else {
-                        actualizar = true; // Primera vez
+                        actualizar = true; // Primera lectura del vehículo
                     }
 
-                    // Throttling en memoria (ConcurrentHashMap es seguro y rápido aquí)
+                    // Throttling: Proteger a los clientes y a EMQX de ráfagas de mensajes
                     if (actualizar) {
                         long ahora = System.currentTimeMillis();
-                        long ultimoEnvio = ultimaActualizacionWS.getOrDefault(evento.getVehicleId().toString(), 0L);
+                        long ultimoEnvio = ultimaActualizacionWS.getOrDefault(vehiculoId, 0L);
                         if (ahora - ultimoEnvio >= TIEMPO_MINIMO_ENVIO_MS) {
                             pasoElThrottling = true;
-                            ultimaActualizacionWS.put(evento.getVehicleId().toString(), ahora);
+                            ultimaActualizacionWS.put(vehiculoId, ahora);
                         }
                     }
 
                     if (pasoElThrottling) {
-                        return guardarYNotificar(evento, estadoActual);
+                        return guardarYNotificar(evento, vehiculoId, estadoActual);
                     }
+                    return Mono.empty();
+                })
+                .onErrorResume(e -> {
+                    log.error("Error al procesar vehículo {} contra Redis: {}", vehiculoId, e.getMessage());
                     return Mono.empty();
                 });
     }
 
-    private Mono<Void> guardarYNotificar(TelemetriaVehiculo evento, EstadoCirculacion estadoActual) {
-        String key = "vehiculo:" + evento.getVehicleId();
+    private Mono<Void> guardarYNotificar(TelemetriaVehiculo evento, String vehiculoId, EstadoCirculacion estadoActual) {
+        String key = "vehiculo:" + vehiculoId;
 
-        // Mapeo manual para Redis (como en tu Mapper)
         Map<String, String> data = new HashMap<>();
         data.put("lat", String.valueOf(evento.getLatitude()));
         data.put("lon", String.valueOf(evento.getLongitude()));
         data.put("speed", String.valueOf(evento.getSpeed()));
         data.put("bat", String.valueOf(evento.getBatteryLevel()));
         data.put("ts", String.valueOf(evento.getTimestamp()));
-        // Importante: status se setea solo si es nuevo, pero usamos putAll que sobrescribe.
-        // Mantenemos lógica de setNX para status si quisiéramos, pero aquí asumimos update.
-        // Si quieres mantener status antiguo, no lo envíes en el putAll.
 
         return redisTemplate.opsForHash().putAll(key, data)
-                .then(redisTemplate.opsForHash().putIfAbsent(key, "status", ESTADO_DEFECTO)) // Solo si no existe
+                .then(redisTemplate.opsForHash().putIfAbsent(key, "status", ESTADO_DEFECTO))
                 .then(redisTemplate.expire(key, Duration.ofHours(1)))
-                .then(Mono.defer(() -> {
-                    // Construir DTO y Emitir
+                .then(Mono.fromCallable(() -> {
                     VehiculoRedisDto dto = telemetriaMapper.avroToDto(evento);
-                    dto.setStatus(estadoActual); // Usamos el estado que leímos de Redis (o default)
-
-                    return emitirAWebSockets(dto);
-                }));
+                    dto.setStatus(estadoActual);
+                    return dto;
+                }))
+                .flatMap(this::emitirAMqtt);
     }
 
-    private Mono<Void> emitirAWebSockets(VehiculoRedisDto dto) {
+    private Mono<Void> emitirAMqtt(VehiculoRedisDto dto) {
         try {
             String json = objectMapper.writeValueAsString(dto);
+            String vehiculoId = dto.getVehicleId();
 
-            // 1. Emitir a Admin (Todo)
-            sinkAdmin.tryEmitNext(json);
+            String topicAdmin   = String.format(topicAdminFormat, vehiculoId);
+            String topicPublico = String.format(topicPublicoFormat, vehiculoId);
 
-            // 2. Emitir a Público (Filtrado)
-            if (esVisibleParaPublico(dto.getStatus())) {
-                sinkPublico.tryEmitNext(json);
-            }
+            Mono<Void> emitAdmin   = mqttPublisher.publicar(topicAdmin, json);
+            Mono<Void> emitPublico = esVisibleParaPublico(dto.getStatus())
+                    ? mqttPublisher.publicar(topicPublico, json)
+                    : Mono.empty();
+
+            // Ejecuta ambas publicaciones en paralelo sin bloquear
+            return Mono.whenDelayError(emitAdmin, emitPublico);
+
         } catch (JsonProcessingException e) {
-            log.error("Error serializando JSON", e);
+            log.error("Error serializando JSON para MQTT del vehículo {}", dto.getVehicleId(), e);
+            return Mono.empty();
         }
-        return Mono.empty();
     }
 
     private boolean esVisibleParaPublico(EstadoCirculacion estado) {
@@ -163,7 +173,6 @@ public class ServicioDistribucion {
                 estado == EstadoCirculacion.CARGANDO ||
                 estado == EstadoCirculacion.RUTA_LIBRE;
     }
-
 
     private EstadoCirculacion parseEstado(Object val) {
         if (val == null) return EstadoCirculacion.ACTIVO;
@@ -174,16 +183,6 @@ public class ServicioDistribucion {
         }
     }
 
-    // --- Métodos Públicos para Exponer los Flujos ---
-    public Flux<String> getFlujoAdmin() {
-        return sinkAdmin.asFlux();
-    }
-
-    public Flux<String> getFlujoPublico() {
-        return sinkPublico.asFlux();
-    }
-
-    // --- Actualización Manual (Reactiva) ---
     public Mono<Void> actualizarEstadoManual(EstadoDto cambioDto) {
         String key = "vehiculo:" + cambioDto.vehiculoId();
         String nuevoEstadoStr = EstadoCirculacion.values()[cambioDto.nuevoEsatado()].name();
@@ -192,13 +191,9 @@ public class ServicioDistribucion {
                 .then(redisTemplate.opsForHash().entries(key).collectMap(Map.Entry::getKey, Map.Entry::getValue))
                 .flatMap(mapa -> {
                     if (mapa.isEmpty()) return Mono.empty();
-
-                    // Adaptar Map<Object, Object> a Map<Object, Object> para el mapper existente
-                    // (En Redis Reactive las keys son Strings, el mapper espera Objects, compatible)
                     Map<Object, Object> mapaObj = new HashMap<>(mapa);
                     VehiculoRedisDto dto = telemetriaMapper.mapFromRedis(cambioDto.vehiculoId(), mapaObj);
-
-                    return emitirAWebSockets(dto);
+                    return emitirAMqtt(dto);
                 });
     }
 }

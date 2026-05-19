@@ -11,11 +11,13 @@ import com.ServiciosTransporte.Gestion.Modelos.Conductor;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioConductor;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculoAsignacion;
 import com.ServiciosTransporte.Gestion.MappersUpdate.ConductorUpdateDtoMapper;
+import com.servicioTransporte.flota.eventos.conductor.eliminar.ConductorEliminado;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
@@ -26,12 +28,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ServicioConductor {
 
+    private static final String TOPIC_ELIMINAR_CONDUCTOR = "eliminar-conductor";
+
     private final IRepositorioConductor repositorioConductor;
     private final ConductorMapper conductorMapper;
     private final ConductorLiteDtoMapper conductorLiteDtoMapper;
     private final ConductorSugerenciaDtoMapper conductorSugerenciaDtoMapper;
     private final ConductorUpdateDtoMapper conductorUpdateDtoMapper;
     private final IRepositorioVehiculoAsignacion repositorioVehiculoAsignacion;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public ConductorDto registrarConductor(@Valid ConductorDto conductorDto){
@@ -103,5 +108,15 @@ public class ServicioConductor {
         repositorioConductor.save(conductor);
 
         repositorioVehiculoAsignacion.softDeleteFromConductor(id, LocalDateTime.now());
+
+        if (conductor.getUsuarioId() != null) {
+            ConductorEliminado evento = ConductorEliminado.newBuilder()
+                    .setKeycloakId(conductor.getUsuarioId())
+                    .setNombre(conductor.getNombre())
+                    .setApellido(conductor.getApellidos())
+                    .setDni(conductor.getDni())
+                    .build();
+            kafkaTemplate.send(TOPIC_ELIMINAR_CONDUCTOR, conductor.getUsuarioId(), evento);
+        }
     }
 }

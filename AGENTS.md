@@ -1,4 +1,4 @@
-# Contexto General del Proyecto: Gestión y Seguimiento de Flota EV
+# Contexto General del Proyecto: Gestión y Seguimiento de flota de vehículos eléctricos espirituanos
 
 ## Objetivo del Negocio
 
@@ -6,8 +6,9 @@ Backend diseñado para el seguimiento de una flota de vehículos eléctricos y l
 
 ## Aclaraciones Críticas (Reglas de Oro para Agentes IA)
 
-- Servicio Reactivo: `Seguimiento-Distribucion-Reactivo` es el responsable de la distribución de telemetría.
-- Servicio Deprecado: `Seguimiento-Distribucion-Telemetria` está DEPRECADO y NO debe considerarse para nuevas implementaciones.
+- Servicio Ingestor: `Ecomoviles-Ingestor-Reactivo` expone un servidor TCP, decodifica tramas (ej. JT808 de IRIS 807) con Kaitai Struct y publica telemetría Avro en Kafka.
+- Servicio Distribución Reactivo: `Seguimiento-Distribucion-Reactivo` AHORA consume de Kafka la telemetría generada por el ingestor, aplica lógica de negocio y la distribuye hacia el broker mqtt (EMQX).
+- Servicio Deprecado: `Seguimiento-Distribucion-Telemetria` y la integración con `Traccar` están DEPRECADOS.
 - Esquemas Compartidos: `eventos-flota` es una librería de esquemas Avro; TODOS los microservicios que usan Kafka deben importar sus clases generadas.
  
 
@@ -67,10 +68,11 @@ Sincronización de Contexto: El agente debe actualizar este y cualquier archivo 
 ## Mapa de Microservicios (carpetas reales)
 
 - `ServidorDeRegistroDeServicios`: Eureka Server
+- `Ecomoviles-Ingestor-Reactivo`: Ingesta TCP, decodificación (Kaitai Struct / JT808) y publicación a Kafka
 - `api-gateway`: Enrutamiento y validación de tokens
 - `controlDeIdentidad`: Intermediario con Keycloak
 - `Gestion`: API REST CRUD y gestión de entidades
-- `Seguimiento-Entrada-Telemetria`: Ingesta MQTT a Kafka
-- `Seguimiento-Distribucion-Reactivo`: Distribución WebFlux / WebSockets
+- `Seguimiento-Entrada-Telemetria`: Ingesta MQTT a Kafka [DEPRECADO]
+- `Seguimiento-Distribucion-Reactivo`: Distribución hacia el broker MQTT(Emqx)
 - `Seguimiento-Distribucion-Telemetria`: [DEPRECADO]
 - `eventos-flota`: Librería de esquemas Avro

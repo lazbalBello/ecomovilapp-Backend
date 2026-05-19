@@ -24,20 +24,29 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.properties.schema.registry.url}")
     private String schemaRegistryUrl;
 
+    private static final String TOPIC = "vehiculos-entrada-telemetria";
+
     @Bean
-    public ReceiverOptions<String, TelemetriaVehiculo> receiverOptions() {
+    public ReceiverOptions<String, TelemetriaVehiculo> kafkaReceiverOptions() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "servicio-distribucion-group-reactive");
+
+        // Deserializadores: String para la Key, Avro para el Value
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
+
+        // Configuración específica de Avro/Schema Registry
         props.put(KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
-        props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true);
-        // Optimización para Reactor Kafka
+        props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, "true");
+
+        // Optimización de consumo:
+        // Loteamos un poco la lectura para que el bufferTimeout del consumidor tenga datos que procesar
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500");
 
         return ReceiverOptions.<String, TelemetriaVehiculo>create(props)
-                .subscription(Collections.singleton("vehiculos-entrada-telemetria"));
+                .subscription(Collections.singleton(TOPIC));
     }
 
     @Bean

@@ -1,0 +1,11 @@
+.git
+**/target/
+**/*.iml
+.idea/
+*.log
+.env
+Seguimiento-Entrada-Telemetria/
+Seguimiento-Distribucion-Telemetria/
+docker-compose.yml
+AGENTS.md
+.agent/

@@ -1,0 +1,40 @@
+server:
+  port: 8084
+
+eureka:
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:false}
+    non-secure-port-enabled: true
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+
+spring:
+  application:
+    name: Ecomoviles-Ingestor-Reactivo
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    properties:
+      schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8086}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      acks: 1
+      retries: 3
+      properties:
+        compression.type: snappy
+        linger.ms: 10
+        batch.size: 32768
+
+network:
+  tcp:
+    port: 5001
+
+logging:
+  level:
+    root: INFO
+    com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo: DEBUG
+    reactor.netty.tcp.TcpServer: DEBUG
