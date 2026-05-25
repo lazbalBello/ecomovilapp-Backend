@@ -381,18 +381,18 @@ services:
       redis:
         condition: service_healthy
     environment:
-      - EUREKA_URI=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - ISSUER=http://keycloak:9090/realms/realm-dev
-      - JWK_URL=http://keycloak:9090/realms/realm-dev/protocol/openid-connect/certs
+      - EUREKA_URI=${EUREKA_URI}
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=${EUREKA_INSTANCE_PREFER_IP_ADDRESS}
+      - ISSUER=${ISSUER}
+      - JWK_URL=${JWK_URL}
       - DISCOVERI_URI=http://eureka-server:8761
       - GESTION_URI=lb://Gestion
       - CONTROL_DE_IDENTIDAD_URI=lb://controlDeIdentidad
       - SEGUIMIENTO_DISTRIBUCION_REACTIVO_URI=lb://Seguimiento-Distribucion-Reactivo
       - ADMIN_SECRET=${ADMIN_SECRET}
       - USER_SECRET=${USER_SECRET}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     env_file:
       - .env
@@ -427,16 +427,13 @@ services:
       schema-registry:
         condition: service_healthy
     environment:
-      - EUREKA_URI=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - DB_URL=jdbc:postgresql://db-keycloak:5433/db_keycloak
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=${DB_KEYCLOAK_PASSWORD}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SCHEMA_REGISTRY_URL=http://schema-registry:8086
+      - EUREKA_URI=${EUREKA_URI}
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=${EUREKA_INSTANCE_PREFER_IP_ADDRESS}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - SCHEMA_REGISTRY_URL=${SCHEMA_REGISTRY_URL}
       - SERVER_URL=http://keycloak:9090
-      - ISSUER=http://keycloak:9090/realms/realm-dev
-      - JWK_URL=http://keycloak:9090/realms/realm-dev/protocol/openid-connect/certs
+      - ISSUER=${ISSUER}
+      - JWK_URL=${JWK_URL}
     env_file:
       - .env
     networks:
@@ -464,15 +461,15 @@ services:
       schema-registry:
         condition: service_healthy
     environment:
-      - EUREKA_URI=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - EUREKA_URI=${EUREKA_URI}
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=${EUREKA_INSTANCE_PREFER_IP_ADDRESS}
       - DB_URL=jdbc:postgresql://db-gestion:5431/ms_gestion
       - DB_USERNAME=postgres
       - DB_PASSWORD=${DB_PASSWORD}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SCHEMA_REGISTRY_URL=http://schema-registry:8086
-      - ISSUER=http://keycloak:9090/realms/realm-dev
-      - JWK_URL=http://keycloak:9090/realms/realm-dev/protocol/openid-connect/certs
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - SCHEMA_REGISTRY_URL=${SCHEMA_REGISTRY_URL}
+      - ISSUER=${ISSUER}
+      - JWK_URL=${JWK_URL}
     env_file:
       - .env
     networks:
@@ -498,10 +495,10 @@ services:
       schema-registry:
         condition: service_healthy
     environment:
-      - EUREKA_URI=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SCHEMA_REGISTRY_URL=http://schema-registry:8086
+      - EUREKA_URI=${EUREKA_URI}
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=${EUREKA_INSTANCE_PREFER_IP_ADDRESS}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - SCHEMA_REGISTRY_URL=${SCHEMA_REGISTRY_URL}
     env_file:
       - .env
     networks:
@@ -542,18 +539,18 @@ services:
       schema-registry:
         condition: service_healthy
     environment:
-      - EUREKA_URI=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SCHEMA_REGISTRY_URL=http://schema-registry:8086
-      - MQTT_URL=tcp://emqx:1883
+      - EUREKA_URI=${EUREKA_URI}
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=${EUREKA_INSTANCE_PREFER_IP_ADDRESS}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - SCHEMA_REGISTRY_URL=${SCHEMA_REGISTRY_URL}
+      - MQTT_URL=${MQTT_URL}
       - EMQX_USERNAME=${EMQX_USERNAME}
       - SERVICIO_DISTRIBUCION_PASSWORD=${SERVICIO_DISTRIBUCION_PASSWORD}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - ISSUER=http://keycloak:9090/realms/realm-dev
-      - JWK_URL=http://keycloak:9090/realms/realm-dev/protocol/openid-connect/certs
+      - ISSUER=${ISSUER}
+      - JWK_URL=${JWK_URL}
     env_file:
       - .env
     networks:

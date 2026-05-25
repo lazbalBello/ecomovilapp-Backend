@@ -36,12 +36,10 @@
 
 	<modules>
 		<module>Gestion</module>
-		<module>Seguimiento-Entrada-Telemetria</module>
 		<module>controlDeIdentidad</module>
 		<module>servidorDeRegistroDeServicios</module>
 		<module>api-gateway</module>
         <module>eventos-flota</module>
-		<module>Seguimiento-Distribucion-Telemetria</module>
 		<module>Seguimiento-Distribucion-Reactivo</module>
 		<module>Ecomoviles-Ingestor-Reactivo</module>
     </modules>
