@@ -7,8 +7,11 @@ Backend diseñado para el seguimiento de una flota de vehículos eléctricos y l
 ## Aclaraciones Críticas (Reglas de Oro para Agentes IA)
 
 - Servicio Ingestor: `Ecomoviles-Ingestor-Reactivo` expone un servidor TCP, decodifica tramas (ej. JT808 de IRIS 807) con Kaitai Struct y publica telemetría Avro en Kafka.
-- Servicio Distribución Reactivo: `Seguimiento-Distribucion-Reactivo` AHORA consume de Kafka la telemetría generada por el ingestor, aplica lógica de negocio y la distribuye hacia el broker mqtt (EMQX).
-- Servicio Deprecado: `Seguimiento-Distribucion-Telemetria` y la integración con `Traccar` están DEPRECADOS.
+- Servicio Distribución Reactivo: `Seguimiento-Distribucion-Reactivo` Consume de Kafka la telemetría generada por el ingestor, aplica lógica de negocio y la distribuye hacia el broker mqtt (EMQX).
+- Servicio de Gestión de inventario: `Gestion` Actua como una api REST para la gestión de la información de los vehículos, conductores, rutas y paradas y persiste la información en db-gestion
+- Servicio de Autenticaión: `controlDeIdentidad` Actua como intermediario entre keycloak y los clientes web maneja las peticiones de registro, autenticación y gestión de usuarios 
+- API-Gateway: `api-gateway` Gateway de los microservicio enruta las peticiones a su dirección correspondiente, valida tokens y aplica un RateLimiter para protección contra ataques de DoS
+- Eureka-Server: `ServidorDeRegistroDeServicios` Levanta un servidor de Eureka para el descubriemiento y registro de los microservicios para comprobar estado y balancear la carga 
 - Esquemas Compartidos: `eventos-flota` es una librería de esquemas Avro; TODOS los microservicios que usan Kafka deben importar sus clases generadas.
  
 
