@@ -10,7 +10,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.tcp_gps.address=:5001" # Nuevo entrypoint para tráfico GPS TCP
+      - "--entrypoints.tcp_gps.address=:5001"
       #- "--entrypoints.websecure.address=:443" # Para producción con TLS
     ports:
       - "80:80"
