@@ -15,10 +15,8 @@ import java.util.List;
 @NoArgsConstructor
 public class ConductorUsuarioDto {
 
-    @NotBlank(message = "El nombre de usuario no puede estar en blanco")
     private String nombreUsuario;
 
-    @NotBlank(message = "La contraseña no puede estar en blanco")
     private String password;
 
     @NotBlank(message = "El email no puede estar en blanco")

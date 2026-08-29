@@ -17,6 +17,8 @@ import java.util.Objects;
 @Table(indexes = {
         @Index(name = "idx_vehiculo_matricula", columnList = "matricula"),
         @Index(name = "idx_vehiculo_fecha_eliminacion", columnList = "fecha_eliminacion")
+}, uniqueConstraints = {
+        @UniqueConstraint(columnNames = "imei_dispositivo_gps")
 })
 @Getter
 @Setter
@@ -34,6 +36,9 @@ public class Vehiculo {
     private String modelo;
     private String marca;
     private String tipoBateria;
+
+    @Column(name = "imei_dispositivo_gps", length = 15)
+    private String imeiDispositivoGps;
 
     @Column(name = "fecha_eliminacion")
     private LocalDateTime fechaEliminacion;

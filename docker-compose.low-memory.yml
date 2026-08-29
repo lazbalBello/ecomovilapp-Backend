@@ -1,0 +1,47 @@
+services:
+  traefik:
+    mem_limit: 96m
+
+  db-gestion:
+    mem_limit: 192m
+
+  db-keycloak:
+    mem_limit: 192m
+
+  keycloak:
+    mem_limit: 384m
+
+  kafka:
+    mem_limit: 512m
+    environment:
+      KAFKA_HEAP_OPTS: "-Xms128m -Xmx384m"
+
+  kafka-ui:
+    mem_limit: 128m
+
+  schema-registry:
+    mem_limit: 192m
+
+  emqx:
+    mem_limit: 256m
+
+  redis:
+    mem_limit: 64m
+
+  servidor-registro:
+    mem_limit: 192m
+
+  api-gateway:
+    mem_limit: 192m
+
+  control-de-identidad:
+    mem_limit: 192m
+
+  gestion:
+    mem_limit: 384m
+
+  ecomoviles-ingestor-reactivo:
+    mem_limit: 192m
+
+  seguimiento-distribucion-reactivo:
+    mem_limit: 192m

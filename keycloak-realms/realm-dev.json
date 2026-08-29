@@ -1,0 +1,23 @@
+{
+  "realm": "realm-dev",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "Admin role" },
+      { "name": "user", "description": "User role" },
+      { "name": "driver", "description": "Driver role" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "ms-spring",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "YzlZ1f4Qj6dC5kwOIm2QvD299gpgJs0I",
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ]
+}

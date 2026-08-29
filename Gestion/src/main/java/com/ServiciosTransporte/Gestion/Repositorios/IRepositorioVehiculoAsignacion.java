@@ -16,6 +16,9 @@ public interface IRepositorioVehiculoAsignacion extends JpaRepository<VehiculoAs
 
     Optional<VehiculoAsignacion> findByVehiculo_IdAndConductor_Id(Long vehiculoId, Long conductorId);
 
+    @Query("SELECT a FROM VehiculoAsignacion a WHERE a.conductor.id = :conductorId AND a.fechaEliminacion IS NULL AND (a.indefinido = true OR a.fechaFinal IS NULL OR a.fechaFinal >= CURRENT_DATE) ORDER BY a.fechaInicio DESC")
+    java.util.List<VehiculoAsignacion> findActiveByConductorId(@Param("conductorId") Long conductorId);
+
     @Modifying
     @Query("UPDATE VehiculoAsignacion a SET a.fechaEliminacion = :now WHERE a.vehiculo.id = :vehiculoId AND a.fechaEliminacion IS NULL")
     int softDeleteFromVehiculo(@Param("vehiculoId")Long vehiculoId, @Param("now")LocalDateTime now);

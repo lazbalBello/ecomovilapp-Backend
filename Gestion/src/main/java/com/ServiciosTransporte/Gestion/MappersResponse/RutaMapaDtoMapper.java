@@ -1,6 +1,7 @@
 package com.ServiciosTransporte.Gestion.MappersResponse;
 
 import com.ServiciosTransporte.Gestion.DtoResponse.RutaMapaDto;
+import com.ServiciosTransporte.Gestion.Mappers.RecorridoRutaMapper;
 import com.ServiciosTransporte.Gestion.Modelos.Ruta;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import org.mapstruct.Mapper;
@@ -9,7 +10,7 @@ import org.mapstruct.Mapping;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = ParadaLiteDtoMapper.class)
+@Mapper(componentModel = "spring", uses = {ParadaLiteDtoMapper.class, RecorridoRutaMapper.class})
 public interface RutaMapaDtoMapper {
 
     @Mapping(target = "vehiculosAsignados", expression = "java( mapVehiculosAsignados(ruta.getVehiculosAsignados()) )")

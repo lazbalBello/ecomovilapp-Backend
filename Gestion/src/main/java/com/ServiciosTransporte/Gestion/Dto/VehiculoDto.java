@@ -28,5 +28,8 @@ public class VehiculoDto implements Serializable {
     @NotBlank(message = "Se requiere el tipo de bateria")
     private String tipoBateria;
 
+    @Pattern(regexp = "^\\d{15}$", message = "El IMEI debe contener exactamente 15 dígitos")
+    private String imeiDispositivoGps;
+
     private String estado = "ACTIVO";
 }

@@ -1,5 +1,6 @@
 package com.ServiciosTransporte.ControlDeIdentidad.Exceptions;
 
+import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.AuthenticationFailedException;
 import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserAlreadyExistsException;
 import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserCreationException;
 import jakarta.validation.ConstraintViolationException;
@@ -46,6 +47,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<?> handleAuthenticationFailedException(AuthenticationFailedException ex, WebRequest request){
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("estado", HttpStatus.UNAUTHORIZED.value());
+        body.put("error", "Autenticación fallida");
+        body.put("mensaje", ex.getMessage());
+        body.put("path", request.getDescription(false));
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> handlerAuthenticationException(AuthenticationException ex, WebRequest request){

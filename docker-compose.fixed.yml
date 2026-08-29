@@ -7,12 +7,15 @@ services:
     container_name: traefik
     command:
       - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.tcp_gps.address=:5001"
     ports:
       - "8888:8080"
-      - "80:80"
       - "5001:5001"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - app-network
     logging:
@@ -20,7 +23,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    mem_limit: "96m"
 
   db-gestion:
     container_name: db-gestion
@@ -120,11 +122,11 @@ services:
       - app-network
     restart: on-failure:3
     healthcheck:
-      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/localhost/9090 && echo 'ok' || exit 1" ]
+      test: [ "CMD-SHELL", "curl -f http://localhost:9090/health/ready || exit 1" ]
       interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 45s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
@@ -503,8 +505,6 @@ services:
       - SCHEMA_REGISTRY_URL=${SCHEMA_REGISTRY_URL}
     env_file:
       - .env
-    ports:
-      - "5001:5001"
     networks:
       - app-network
     labels:

@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.AuthenticationException;
 
@@ -79,7 +80,10 @@ public class GlobalExceptionHandler {
         body.put("timestamp", LocalDateTime.now());
         body.put("estado", HttpStatus.BAD_REQUEST);
         body.put("error", "Error de validación");
-        body.put("mensage", ex.getMessage());
+        String campos = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        body.put("mensage", campos.isBlank() ? "Revisa los datos enviados" : campos);
         body.put("path", request.getDescription(false));
         return new ResponseEntity<>(body,HttpStatus.BAD_REQUEST);
     }

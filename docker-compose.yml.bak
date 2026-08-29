@@ -7,12 +7,17 @@ services:
     container_name: traefik
     command:
       - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.tcp_gps.address=:5001"
+      #- "--entrypoints.websecure.address=:443" # Para producción con TLS
     ports:
-      - "8888:8080"
-      - "80:80"
-      - "5001:5001"
+      #- "80:80"
+      - "8888:8080" # Dashboard Traefik (remover en Prod)
+      - "5001:5001" # Exponer puerto TCP para los dispositivos hardware
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - app-network
     logging:
@@ -20,8 +25,10 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    mem_limit: "96m"
 
+  # ==========================================
+  # INFRAESTRUCTURA (DATABASES / BROKERS)
+  # ==========================================
   db-gestion:
     container_name: db-gestion
     image: postgres:15.15
@@ -118,12 +125,11 @@ services:
       - keycloak_data:/opt/keycloak/data
     networks:
       - app-network
-    restart: on-failure:3
     healthcheck:
-      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/localhost/9090 && echo 'ok' || exit 1" ]
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9090 || exit 1" ]
       interval: 15s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 8
       start_period: 45s
     logging:
       driver: "json-file"
@@ -148,7 +154,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     ports:
-      - "9094:9094"
+      - "9094:9094" # Acceso externo temporal antes de dockerizar
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
@@ -180,7 +186,7 @@ services:
       KAFKA_CLUSTERS_0_KRAFT: "true"
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8086
     ports:
-      - "8085:8080"
+      - "8085:8080" # Dashboard privado (Considerar usar VPN para acceso)
     networks:
       - app-network
     restart: unless-stopped
@@ -223,11 +229,12 @@ services:
     image: emqx/emqx:5.4.1
     container_name: emqx
     ports:
-      - "1883:1883"
-      - "1884:1884"
-      - "1885:1885"
-      - "18083:18083"
+      - "1883:1883"   # MQTT Directo TCP (Hardware Flota)
+      - "1884:1884"   # MQTT sobre WebSockets (Browsers)
+      - "1885:1885"   # MQTT sobre WebSockets Seguro (WSS)
+      - "18083:18083" # Dashboard EMQX
     environment:
+      # Las credenciales del dashboard se mantienen dinámicas vía .env
       EMQX_DASHBOARD__DEFAULT_USERNAME: ${EMQX_DASHBOARD_USERNAME}
       EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD}
     env_file:
@@ -252,6 +259,7 @@ services:
         max-file: "3"
     mem_limit: "512m"
 
+  # Contenedor de inicialización: crea los usuarios MQTT en EMQX via REST API
   emqx-init:
     image: alpine:3.19
     container_name: emqx-init
@@ -267,29 +275,19 @@ services:
         apk add --no-cache curl jq
         
         echo "Esperando a que la API HTTP de EMQX este lista..."
-        MAX_RETRIES=30
-        RETRY_COUNT=0
-        TOKEN=""
+        sleep 5
         
-        while [ -z "$$TOKEN" ] && [ $$RETRY_COUNT -lt $$MAX_RETRIES ]; do
-          echo "Intento de login EMQX: $$(($$RETRY_COUNT + 1))/$$MAX_RETRIES"
-          LOGIN_RES=$$(curl -s -X POST http://emqx:18083/api/v5/login \
-            -H "Content-Type: application/json" \
-            -d "{\"username\":\"admin\",\"password\":\"$${EMQX_DASHBOARD_PASSWORD}\"}" 2>/dev/null || echo '{}')
-          
-          TOKEN=$$(echo "$$LOGIN_RES" | jq -r '.token // empty' 2>/dev/null)
-          if [ -z "$$TOKEN" ]; then
-            echo "[RETRY] Respuesta: $$LOGIN_RES"
-            RETRY_COUNT=$$(($$RETRY_COUNT + 1))
-            sleep 2
-          fi
-        done
+        # 1. Obtener JWT Token
+        LOGIN_RES=$$(curl -s -X POST http://emqx:18083/api/v5/login \
+          -H "Content-Type: application/json" \
+          -d "{\"username\":\"admin\",\"password\":\"$${EMQX_DASHBOARD_PASSWORD}\"}")
         
-        if [ -z "$$TOKEN" ]; then
-          echo "[ERROR] No se pudo obtener el token JWT de EMQX despu\u00e9s de $$MAX_RETRIES intentos"
+        TOKEN=$$(echo $$LOGIN_RES | jq -r '.token')
+        if [ "$$TOKEN" = "null" ] || [ -z "$$TOKEN" ]; then
+          echo "[ERROR] No se pudo obtener el token JWT de EMQX. Respuesta: $$LOGIN_RES"
           exit 1
         fi
-        echo "[OK] Token JWT obtenido correctamente: $$TOKEN"
+        echo "[OK] Token JWT obtenido correctamente"
 
         BASE_URL="http://emqx:18083/api/v5/authentication/password_based:built_in_database/users"
 
@@ -343,6 +341,9 @@ services:
         max-file: "3"
     mem_limit: "128m"
 
+  # ==========================================
+  # MICROSERVICIOS ECOMÓVILES (BUILD DESDE MAVEN)
+  # ==========================================
   servidor-registro:
     build:
       context: .
@@ -503,18 +504,17 @@ services:
       - SCHEMA_REGISTRY_URL=${SCHEMA_REGISTRY_URL}
     env_file:
       - .env
-    ports:
-      - "5001:5001"
     networks:
       - app-network
     labels:
       - "traefik.enable=true"
+      # Traefik Actuando como Balanceador TCP
       - "traefik.tcp.routers.ingestor.rule=HostSNI(`*`)"
       - "traefik.tcp.routers.ingestor.entrypoints=tcp_gps"
       - "traefik.tcp.services.ingestor.loadbalancer.server.port=5001"
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 1 # Puedes escalar cambiando este número (p. ej., a 3) y Traefik hará Round-Robin TCP automáticamente.
     restart: unless-stopped
     logging:
       driver: "json-file"

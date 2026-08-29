@@ -1,5 +1,6 @@
 package com.ServiciosTransporte.Gestion.DtoUpdate;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,12 @@ public class ConductorUpdateDto implements Serializable {
             message = "Los apellidos solo pueden contener letras y espacios"
     )
     private String apellidos;
+
+    @Email
+    private String email;
+
+    private String telefono;
+    private String direccion;
 
     private List<@NotBlank(message = "La categoria no puede estar vacía")
     @Pattern(regexp = "^(?:FE|[ACD]1?|[BEF])$",

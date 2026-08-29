@@ -36,6 +36,12 @@ public class ConductorDto implements Serializable {
     )
     private String apellidos;
 
+    @Email
+    private String email;
+
+    private String telefono;
+    private String direccion;
+
     @NotEmpty(message = "El conducor debe tener al menos una categoria de licencia")
     private List<@NotBlank(message = "La categoria no puede estar vacía")
                  @Pattern(regexp = "^(?:FE|[ACD]1?|[BEF])$",

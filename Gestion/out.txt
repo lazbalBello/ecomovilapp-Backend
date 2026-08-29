@@ -1,0 +1,22 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------< com.serviciosTransporte:GestionSeguimiento >-------------
+[INFO] Building GestionSeguimiento 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.500 s
+[INFO] Finished at: 2026-08-27T14:29:02-04:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal on project GestionSeguimiento: Could not collect dependencies for project com.serviciosTransporte:GestionSeguimiento:jar:0.0.1-SNAPSHOT
+[ERROR] Failed to read artifact descriptor for com.serviciosTransporte:eventos-flota:jar:1.0.0-SNAPSHOT
+[ERROR] 	Caused by: The following artifacts could not be resolved: com.serviciosTransporte:microservicios:pom:1.0.0-SNAPSHOT (absent): com.serviciosTransporte:microservicios:pom:1.0.0-SNAPSHOT was not found in https://packages.confluent.io/maven/ during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of confluent has elapsed or updates are forced
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException

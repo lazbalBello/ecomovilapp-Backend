@@ -31,6 +31,12 @@ public class Conductor {
     private String nombre;
     private String apellidos;
 
+    @Column(unique = true)
+    private String email;
+
+    private String telefono;
+    private String direccion;
+
     @Column(name = "fecha_eliminacion")
     private LocalDateTime fechaEliminacion;
 

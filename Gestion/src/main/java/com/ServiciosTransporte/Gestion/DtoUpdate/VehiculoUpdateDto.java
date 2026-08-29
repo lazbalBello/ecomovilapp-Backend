@@ -28,4 +28,7 @@ public class VehiculoUpdateDto implements Serializable {
     private Integer estado;
 
     private Long rutaId;
+
+    @Pattern(regexp = "^\\d{15}$", message = "El IMEI debe contener exactamente 15 dígitos")
+    private String imeiDispositivoGps;
 }

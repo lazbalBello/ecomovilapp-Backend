@@ -150,11 +150,16 @@ public class ServicioUsuarios implements IKeycloakService {
 
         UsersResource users = keycloakProvider.getUserResource();
 
+        String email = userDto.getEmail().trim().toLowerCase();
+        String passwordInicial = (userDto.getPassword() == null || userDto.getPassword().isBlank())
+                ? userDto.getDni()
+                : userDto.getPassword();
+
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setFirstName(userDto.getNombre());
         userRepresentation.setLastName(userDto.getApellidos());
-        userRepresentation.setUsername(userDto.getNombreUsuario());
-        userRepresentation.setEmail(userDto.getEmail());
+        userRepresentation.setUsername(email);
+        userRepresentation.setEmail(email);
         userRepresentation.setEmailVerified(true);
         userRepresentation.setEnabled(true);
 
@@ -167,7 +172,7 @@ public class ServicioUsuarios implements IKeycloakService {
                 CredentialRepresentation credential = new CredentialRepresentation();
                 credential.setTemporary(false);
                 credential.setType(OAuth2Constants.PASSWORD);
-                credential.setValue(userDto.getPassword());
+                credential.setValue(passwordInicial);
 
                 users.get(userId).resetPassword(credential);
 

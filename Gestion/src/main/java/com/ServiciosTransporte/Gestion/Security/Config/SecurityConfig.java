@@ -4,6 +4,7 @@ import lombok.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,6 +32,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers("/auth/**")
                                 .permitAll()
+                                .requestMatchers(HttpMethod.GET, "/admin/Vehiculo/v1/listartodo",
+                                        "/admin/Conductor/v1/listar",
+                                        "/admin/Asignacion/v1/listar",
+                                        "/admin/Ruta/v1/listar",
+                                        "/admin/Ruta/v1/listar/mapa",
+                                        "/admin/Parada/v1/listar",
+                                        "/admin/Parada/v1/listar/mapa")
+                                .permitAll()
+                                .requestMatchers("/conductor/**")
+                                .hasRole("driver")
                                 .requestMatchers("/admin/**")
                                 .hasRole("admin")
                                 .requestMatchers("/user/**")

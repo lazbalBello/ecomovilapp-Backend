@@ -10,7 +10,7 @@ public record EstadoDto(
         @NotBlank(message = "se requiere el id del vehículo")
         String vehiculoId,
         @NotNull(message = "Se requiere el nuevo estado")
-        @Max(3)
+        @Max(4)
         @Min(0)
         int nuevoEsatado
 ) {

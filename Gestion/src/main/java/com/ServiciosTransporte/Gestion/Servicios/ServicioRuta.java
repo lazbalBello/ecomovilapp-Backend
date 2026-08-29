@@ -66,8 +66,9 @@ public class ServicioRuta {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public List<RutaMapaDto> rutasParaMapa(){
-        List<Ruta> rutas = repositorioRuta.findAll();
+        List<Ruta> rutas = repositorioRuta.findAllWithRecorrido();
         return rutas.stream()
                 .map(rutaMapaDtoMapper::toRutaMapaDto)
                 .collect(Collectors.toList());

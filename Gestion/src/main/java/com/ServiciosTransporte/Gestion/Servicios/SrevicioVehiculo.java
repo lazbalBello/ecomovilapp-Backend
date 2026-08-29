@@ -7,6 +7,10 @@ import com.ServiciosTransporte.Gestion.Mappers.VehiculoMapper;
 import com.ServiciosTransporte.Gestion.MappersResponse.VehiculoLiteDtoMapper;
 import com.ServiciosTransporte.Gestion.Modelos.Ruta;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
+import com.ServiciosTransporte.Gestion.Modelos.Conductor;
+import com.ServiciosTransporte.Gestion.Modelos.EstadoVehiculo;
+import com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion;
+import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioConductor;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioRuta;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculo;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculoAsignacion;
@@ -31,6 +35,7 @@ public class SrevicioVehiculo {
     private final VehiculoUpdateMapper vehiculoUpdateMapper;
     private final IRepositorioRuta repositorioRuta;
     private final IRepositorioVehiculoAsignacion repositorioVehiculoAsignacion;
+    private final IRepositorioConductor repositorioConductor;
 
     @Transactional
     public VehiculoDto registrarVehiculo(VehiculoDto vehiculoDto){
@@ -98,5 +103,45 @@ public class SrevicioVehiculo {
         repositorioVehiculo.save(vehiculo);
 
         repositorioVehiculoAsignacion.softDeleteFromVehiculo(id, LocalDateTime.now());
+    }
+
+    public VehiculoLiteDto obtenerVehiculoAsignado(String email, String usuarioId) {
+        Vehiculo vehiculo = resolverVehiculoDelConductor(email, usuarioId);
+        return vehiculoLiteDtoMapper.toVehiculoLiteDto(vehiculo);
+    }
+
+    @Transactional
+    public VehiculoLiteDto actualizarEstadoOperativo(String email, String usuarioId, String estadoOperativo) {
+        Vehiculo vehiculo = resolverVehiculoDelConductor(email, usuarioId);
+        vehiculo.setEstado(mapearEstadoOperativo(estadoOperativo));
+        return vehiculoLiteDtoMapper.toVehiculoLiteDto(repositorioVehiculo.save(vehiculo));
+    }
+
+    private Vehiculo resolverVehiculoDelConductor(String email, String usuarioId) {
+        Conductor conductor = java.util.Optional.ofNullable(email)
+                .filter(value -> !value.isBlank())
+                .flatMap(repositorioConductor::findByEmailIgnoreCase)
+                .or(() -> java.util.Optional.ofNullable(usuarioId)
+                        .filter(value -> !value.isBlank())
+                        .flatMap(repositorioConductor::findByUsuarioId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "No se encontró el conductor autenticado"));
+
+        List<VehiculoAsignacion> asignaciones = repositorioVehiculoAsignacion.findActiveByConductorId(conductor.getId());
+        if (asignaciones.isEmpty() || asignaciones.get(0).getVehiculo() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No tienes un ecomóvil asignado");
+        }
+        return asignaciones.get(0).getVehiculo();
+    }
+
+    private EstadoVehiculo mapearEstadoOperativo(String estadoOperativo) {
+        String valor = estadoOperativo == null ? "" : estadoOperativo.trim().toUpperCase().replace(' ', '_');
+        return switch (valor) {
+            case "NO_DISPONIBLE", "INACTIVO", "INDISPONIBLE" -> EstadoVehiculo.INACTIVO;
+            case "AVERIADO", "ROTO", "FUERA_DE_SERVICIO", "MANTENIMIENTO" -> EstadoVehiculo.FUERA_DE_SERVICIO;
+            case "TRABAJANDO", "ACTIVO" -> EstadoVehiculo.ACTIVO;
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Estado no válido. Usa TRABAJANDO, NO_DISPONIBLE o AVERIADO");
+        };
     }
 }

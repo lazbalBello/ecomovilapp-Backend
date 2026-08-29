@@ -1,0 +1,9 @@
+﻿ id | matricula | modelo | estado | imei_dispositivo_gps 
+----+-----------+--------+--------+----------------------
+  1 | B987654   | Ves004 | ACTIVO | 
+  3 | x109000   | Ves004 | ACTIVO | 
+  4 | R345621   | regui  | ACTIVO | 
+  6 | B987659   | Ves004 | ACTIVO | 
+  8 | B987656   | Ves004 | ACTIVO | 
+(5 rows)
+

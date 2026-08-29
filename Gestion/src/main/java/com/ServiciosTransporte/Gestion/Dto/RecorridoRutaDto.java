@@ -17,4 +17,6 @@ public class RecorridoRutaDto implements Serializable {
 
     @NotNull(message = "Selecciona la longitud")
     private Double longitud;
+
+    private Integer orden;
 }

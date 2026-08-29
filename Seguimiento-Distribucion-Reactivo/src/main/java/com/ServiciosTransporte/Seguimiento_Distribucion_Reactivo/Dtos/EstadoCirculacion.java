@@ -4,5 +4,6 @@ public enum EstadoCirculacion {
     ACTIVO,
     INACTIVO,
     CARGANDO,
-    RUTA_LIBRE
+    RUTA_LIBRE,
+    AVERIADO
 }

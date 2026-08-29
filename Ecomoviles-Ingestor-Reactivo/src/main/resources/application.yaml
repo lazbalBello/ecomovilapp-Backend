@@ -33,6 +33,9 @@ network:
   tcp:
     port: 5001
 
+gestion:
+  base-url: ${GESTION_BASE_URL:http://localhost:8080}
+
 logging:
   level:
     root: INFO

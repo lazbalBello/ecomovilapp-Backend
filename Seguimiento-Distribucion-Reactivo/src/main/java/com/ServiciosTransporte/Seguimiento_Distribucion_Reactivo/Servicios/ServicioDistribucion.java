@@ -86,6 +86,11 @@ public class ServicioDistribucion {
 
                     EstadoCirculacion estadoActual = parseEstado(redisData.size() > 2 ? redisData.get(2) : null);
 
+                    if (estadoActual == EstadoCirculacion.AVERIADO) {
+                        log.info("Vehículo {} averiado: se ignora el movimiento GPS", vehiculoId);
+                        return Mono.empty();
+                    }
+
                     // Validar si el vehículo se ha movido más del umbral permitido
                     if (redisData.size() >= 2 && redisData.get(0) != null && redisData.get(1) != null) {
                         try {

@@ -11,6 +11,10 @@ public interface IRepositorioConductor extends JpaRepository<Conductor , Long> {
 
     Optional<Conductor> findByDni(String dni);
 
+    Optional<Conductor> findByEmailIgnoreCase(String email);
+
+    Optional<Conductor> findByUsuarioId(String usuarioId);
+
     List<Conductor> findByDniContainingIgnoreCase(String dni);
 
     List<Conductor> findByNombreContainingIgnoreCaseOrApellidosContainingIgnoreCase(String NombreQuery, String ApellidosQuery);

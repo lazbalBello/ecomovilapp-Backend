@@ -2,6 +2,7 @@ package com.ServiciosTransporte.Api_Gateway.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.config.Customizer;
@@ -13,8 +14,20 @@ public class SecurityConfig {
         public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
                 return http
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                                .cors(Customizer.withDefaults())
                                 .authorizeExchange(exchanges -> exchanges
+                                                .pathMatchers(HttpMethod.OPTIONS, "/**")
+                                                .permitAll()
                                                 .pathMatchers("/auth/**", "/telemetria/v1/webhook")
+                                                .permitAll()
+                                                .pathMatchers(HttpMethod.GET,
+                                                                "/admin/Vehiculo/v1/listartodo",
+                                                                "/admin/Conductor/v1/listar",
+                                                                "/admin/Asignacion/v1/listar",
+                                                                "/admin/Ruta/v1/listar",
+                                                                "/admin/Ruta/v1/listar/mapa",
+                                                                "/admin/Parada/v1/listar",
+                                                                "/admin/Parada/v1/listar/mapa")
                                                 .permitAll()
                                                 .anyExchange()
                                                 .authenticated())

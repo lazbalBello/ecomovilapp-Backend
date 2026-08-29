@@ -40,7 +40,22 @@ public class ServicioConductor {
 
     @Transactional
     public ConductorDto registrarConductor(@Valid ConductorDto conductorDto){
-        Conductor conductor = conductorMapper.toConductor(conductorDto);
+        Conductor conductor = repositorioConductor.findByDni(conductorDto.getDni())
+                .orElseGet(() -> conductorMapper.toConductor(conductorDto));
+        if (conductor.getId() != null) {
+            if (conductorDto.getUsuarioId() != null) {
+                conductor.setUsuarioId(conductorDto.getUsuarioId());
+            }
+            conductor.setNombre(conductorDto.getNombre());
+            conductor.setApellidos(conductorDto.getApellidos());
+            conductor.setEmail(conductorDto.getEmail());
+            conductor.setTelefono(conductorDto.getTelefono());
+            conductor.setDireccion(conductorDto.getDireccion());
+            if (conductorDto.getCategoriasLicencia() != null) {
+                conductor.setCategoriasLicencia(conductorDto.getCategoriasLicencia());
+            }
+            conductor.setDisponibilidad(conductorDto.isDisponibilidad());
+        }
         Conductor conductorGuardado = repositorioConductor.save(conductor);
         return conductorMapper.toConductorDto(conductorGuardado);
     }

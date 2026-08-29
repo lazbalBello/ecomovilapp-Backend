@@ -2,12 +2,13 @@
 
 ## Objetivo del Microservicio
 
-Este servicio reactivo (Spring Boot) está dedicado a la ingesta directa y decodificación de tramas de dispositivos GPS (específicamente IRIS 807 usando el protocolo JT808, extensible a otras normativas). Expone un servidor TCP para recibir las conexiones entrantes de los dispositivos de la flota. Su función es traducir los datos binarios usando clases generadas por **Kaitai Struct**, realizar validaciones iniciales y publicar la telemetría resultante en Kafka en el formato unificado `Avro`.
+Este servicio reactivo (Spring Boot) está dedicado a la ingesta directa y decodificación de tramas de dispositivos GPS (específicamente IRIS 807 usando su protocolo nativo ASCII, extendido también a JT808). Expone un servidor TCP para recibir las conexiones entrantes de los dispositivos de la flota. Su función es traducir los datos (ASCII y binarios usando Kaitai Struct), realizar validaciones iniciales y publicar la telemetría resultante en Kafka en el formato unificado `Avro`.
 
 ## Aclaraciones Críticas (Reglas de Oro para Agentes IA)
 
 - **Responsabilidad Única:** Este servicio SOLO debe realizar la recepción TCP, decodificar, validar formato y producir a Kafka. No debe guardar nada en bases relacionales ni distribuir la data para visualización.
-- **Protocolo y Decodificación:** Actualmente utiliza el estándar JT808. La decodificación en Java se apoya en clases generadas a través del compilador de Kaitai Struct (`.ksy`).
+- **Protocolo y Decodificación:** Actualmente soporta el protocolo ASCII propietario del IRIS (tramas delimitadas por > y < con persistencia de sesión TCP para mantener la ID), así como el estándar binario JT808 (decodificado vía Kaitai Struct).
+  - *Nota sobre IRIS 807:* El manual documenta el paquete de posición (80) con sub-offsets erróneos en su tabla final, provocando solapamientos con la longitud. Además, tramas reales de 47 caracteres envían un dato numérico adicional al final (índice 46). El Ingestor extrae un mapa extra en memoria (`unknown_46`) para preservar retrocompatibilidad con estos modelos sin fallar el stream principal.
 - **Comunicación de Salida:** Publica la información validada en Kafka, requiriendo los esquemas base ubicados en la librería compartida de la organización (`eventos-flota`).
 
 ## Regla de Mantenimiento Obligatoria

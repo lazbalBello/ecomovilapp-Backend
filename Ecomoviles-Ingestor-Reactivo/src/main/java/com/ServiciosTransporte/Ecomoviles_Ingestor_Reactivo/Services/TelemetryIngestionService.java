@@ -25,15 +25,27 @@ public class TelemetryIngestionService {
      * Orquestador principal: Recibe bytes, decodifica, valida y publica.
      */
     public Mono<Void> processRawData(byte[] rawData) {
+        return processRawData(rawData, null);
+    }
+
+    public Mono<Void> processRawData(byte[] rawData, io.netty.channel.Channel channel) {
         log.debug("Iniciando procesamiento de trama de {} bytes", rawData != null ? rawData.length : 0);
+
+        if (rawData != null && rawData.length > 0) {
+            String preview = new String(rawData, 0, Math.min(rawData.length, 32), java.nio.charset.StandardCharsets.US_ASCII);
+            log.debug("Preview rawData (ASCII): {}", preview);
+        }
 
         ProtocolDecoder decoder = decoderFactory.getDecoder(rawData);
         if (decoder == null) {
-            log.warn("Trama descartada: Protocolo no reconocido o magia de bytes incorrecta");
+            String preview = rawData != null ? new String(rawData, 0, Math.min(rawData.length, 32), java.nio.charset.StandardCharsets.US_ASCII) : "null";
+            log.warn("Trama descartada: Protocolo no reconocido o magia de bytes incorrecta. longitud={}, preview={}, prefijoEsperado='>32='|' >80='|' >84='", rawData != null ? rawData.length : 0, preview);
             return Mono.empty();
         }
 
-        return decoder.decode(rawData)
+        log.info("Decoder seleccionado para trama: {}", decoder.getClass().getSimpleName());
+
+        return decoder.decode(rawData, channel)
                 .filter(data -> {
                     boolean valid = isDataValid(data);
                     if (!valid) log.debug("Mensaje DESCARTADO por validación de negocio para: {}", data.getVehicleId());

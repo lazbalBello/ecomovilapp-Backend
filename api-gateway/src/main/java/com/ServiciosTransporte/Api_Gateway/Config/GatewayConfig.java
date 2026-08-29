@@ -8,12 +8,6 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsWebFilter;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class GatewayConfig {
@@ -49,23 +43,34 @@ public class GatewayConfig {
                 this.authRateLimiter = authRateLimiter;
         }
 
-        @Bean
-        public CorsWebFilter corsWebFilter() {
-                CorsConfiguration corsConfig = new CorsConfiguration();
-                corsConfig.setAllowedOrigins(List.of("*"));
-                corsConfig.setMaxAge(3600L);
-                corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
-                corsConfig.setAllowedHeaders(List.of("*"));
-
-                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                source.registerCorsConfiguration("/**", corsConfig);
-
-                return new CorsWebFilter(source);
-        }
 
         @Bean
         public RouteLocator routesLocator(RouteLocatorBuilder builder) {
                 return builder.routes()
+                                .route("GestionPublicMap", r -> r
+                                                .method("GET")
+                                                .and()
+                                                .path("/admin/Vehiculo/v1/listartodo",
+                                                                "/admin/Conductor/v1/listar",
+                                                                "/admin/Asignacion/v1/listar",
+                                                                "/admin/Ruta/v1/listar",
+                                                                "/admin/Ruta/v1/listar/mapa",
+                                                                "/admin/Parada/v1/listar",
+                                                                "/admin/Parada/v1/listar/mapa")
+                                                .filters(f -> f
+                                                                .requestRateLimiter(config -> config
+                                                                                .setRateLimiter(defaultRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(gestionUri))
+
+                                .route("GestionConductor", r -> r.path("/conductor/**")
+                                                .filters(f -> f
+                                                                .tokenRelay()
+                                                                .requestRateLimiter(config -> config
+                                                                                .setRateLimiter(defaultRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(gestionUri))
+
                                 .route("Gestion", r -> r.path("/admin/**")
                                                 .filters(f -> f
                                                                 .tokenRelay()
@@ -101,16 +106,6 @@ public class GatewayConfig {
                                                                                 .setKeyResolver(ipKeyResolver)))
                                                 .uri(controlDeIdentidadUri))
 
-                                .route("registrarDriver", r -> r.path("/auth/registrar-driver")
-                                                .and()
-                                                .header("X-API-KEY", adminSecret)
-                                                .filters(f -> f
-                                                                .tokenRelay()
-                                                                .requestRateLimiter(config -> config
-                                                                                .setRateLimiter(authRateLimiter)
-                                                                                .setKeyResolver(ipKeyResolver)))
-                                                .uri(controlDeIdentidadUri))
-
                                 .route("registrarUser", r -> r.path("/auth/registrar-user")
                                                 .and()
                                                 .header("X-API-KEY", userSecret)
@@ -121,8 +116,16 @@ public class GatewayConfig {
                                                                                 .setKeyResolver(ipKeyResolver)))
                                                 .uri(controlDeIdentidadUri))
 
-                                .route("controlDeIdentidad", r -> r
-                                                .path("/auth/login", "/usuarios/**", "/auth/refrescar")
+                                .route("controlDeIdentidadPublic", r -> r
+                                                .path("/auth/login", "/auth/refrescar", "/auth/registrar-driver")
+                                                .filters(f -> f
+                                                                .requestRateLimiter(config -> config
+                                                                                .setRateLimiter(authRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(controlDeIdentidadUri))
+
+                                .route("controlDeIdentidadProtected", r -> r
+                                                .path("/usuarios/**")
                                                 .filters(f -> f
                                                                 .tokenRelay()
                                                                 .requestRateLimiter(config -> config
