@@ -32,6 +32,10 @@ spring:
 network:
   tcp:
     port: 5001
+    enabled: true
+
+gestion:
+  base-url: ${GESTION_BASE_URL:http://localhost:8080}
 
 logging:
   level:

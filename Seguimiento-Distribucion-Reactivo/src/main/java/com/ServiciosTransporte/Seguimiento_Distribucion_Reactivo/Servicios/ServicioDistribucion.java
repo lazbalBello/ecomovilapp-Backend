@@ -6,7 +6,6 @@ import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.Telemetria
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.VehiculoRedisDto;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Mappers.TelemetriaMapper;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Mqtt.Config.MqttPublisherConfig.MqttPublisher;
-import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Utils.GeoUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.servicioTransporte.flota.eventos.vehiculo.seguimiento.TelemetriaVehiculo;
@@ -44,7 +43,6 @@ public class ServicioDistribucion {
     private String topicPublicoFormat;
 
     private static final String ESTADO_DEFECTO = EstadoCirculacion.ACTIVO.name();
-    private static final double UMBRAL_MOVIMIENTO_METROS = 10.0;
     private static final long TIEMPO_MINIMO_ENVIO_MS = 2000;
 
     // Cambiado a String para facilitar el manejo con los datos de Avro
@@ -81,43 +79,19 @@ public class ServicioDistribucion {
 
         return redisTemplate.opsForHash().multiGet(key, List.of("lat", "lon", "status"))
                 .flatMap(redisData -> {
-                    boolean actualizar = false;
-                    boolean pasoElThrottling = false;
-
                     EstadoCirculacion estadoActual = parseEstado(redisData.size() > 2 ? redisData.get(2) : null);
 
-                    // Validar si el vehículo se ha movido más del umbral permitido
-                    if (redisData.size() >= 2 && redisData.get(0) != null && redisData.get(1) != null) {
-                        try {
-                            double latAnt = Double.parseDouble(redisData.get(0).toString());
-                            double lonAnt = Double.parseDouble(redisData.get(1).toString());
-                            double distancia = GeoUtils.calcularDistanciaMetros(latAnt, lonAnt,
-                                    evento.getLatitude(), evento.getLongitude());
-
-                            if (distancia >= UMBRAL_MOVIMIENTO_METROS) {
-                                actualizar = true;
-                            }
-                        } catch (NumberFormatException e) {
-                            actualizar = true; // Ante datos corruptos previos en Redis, forzar actualización
-                        }
-                    } else {
-                        actualizar = true; // Primera lectura del vehículo
+                    // Throttling: Proteger a los clientes y a EMQX de ráfagas de mensajes.
+                    // Cada frame válido que llega se difunde (tanto en movimiento como detenido)
+                    // para que los vehículos parados sigan viéndose en vivo en el mapa.
+                    long ahora = System.currentTimeMillis();
+                    long ultimoEnvio = ultimaActualizacionWS.getOrDefault(vehiculoId, 0L);
+                    if (ahora - ultimoEnvio < TIEMPO_MINIMO_ENVIO_MS) {
+                        return Mono.empty();
                     }
+                    ultimaActualizacionWS.put(vehiculoId, ahora);
 
-                    // Throttling: Proteger a los clientes y a EMQX de ráfagas de mensajes
-                    if (actualizar) {
-                        long ahora = System.currentTimeMillis();
-                        long ultimoEnvio = ultimaActualizacionWS.getOrDefault(vehiculoId, 0L);
-                        if (ahora - ultimoEnvio >= TIEMPO_MINIMO_ENVIO_MS) {
-                            pasoElThrottling = true;
-                            ultimaActualizacionWS.put(vehiculoId, ahora);
-                        }
-                    }
-
-                    if (pasoElThrottling) {
-                        return guardarYNotificar(evento, vehiculoId, estadoActual);
-                    }
-                    return Mono.empty();
+                    return guardarYNotificar(evento, vehiculoId, estadoActual);
                 })
                 .onErrorResume(e -> {
                     log.error("Error al procesar vehículo {} contra Redis: {}", vehiculoId, e.getMessage());

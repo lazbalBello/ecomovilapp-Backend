@@ -1,0 +1,4 @@
+services:
+  api-gateway:
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m -XX:MaxMetaspaceSize=96m -XX:ReservedCodeCacheSize=32m -Xss256k
