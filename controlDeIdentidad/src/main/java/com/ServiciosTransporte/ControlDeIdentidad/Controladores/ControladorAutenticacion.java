@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.keycloak.representations.AccessTokenResponse;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,6 +48,17 @@ public class ControladorAutenticacion {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/public-mqtt-token")
+    public ResponseEntity<PublicMqttTokenResponse> publicMqttToken() {
+        AccessTokenResponse token = tokenClient.getPublicMqttToken();
+
+        PublicMqttTokenResponse response = new PublicMqttTokenResponse(
+                token.getToken(),
+                token.getExpiresIn()
+        );
+
+        return ResponseEntity.ok(response);
+    }
     @PostMapping("/refrescar")
     public ResponseEntity<TokenResponse> refrescar(@Valid @RequestBody RefreshToken token){
         TokenResponse newTokens = tokenClient.refresh(token.refreshToken());

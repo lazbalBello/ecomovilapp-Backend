@@ -18,6 +18,7 @@ public class VehiculoLiteDto implements Serializable {
     private String modelo;
     private String marca;
     private String tipoBateria;
+    private String imeiDispositivoGps;
     private String estado;
     private List<AsignacionLiteDto> asignaciones;
     private RutaLiteDto ruta;

@@ -34,6 +34,16 @@ public class Conductor {
     @Column(name = "fecha_eliminacion")
     private LocalDateTime fechaEliminacion;
 
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion;
+
+    @PrePersist
+    private void onCreate() {
+        if (fechaCreacion == null) {
+            fechaCreacion = LocalDateTime.now();
+        }
+    }
+
     @ElementCollection
     private List<String> categoriasLicencia;
 

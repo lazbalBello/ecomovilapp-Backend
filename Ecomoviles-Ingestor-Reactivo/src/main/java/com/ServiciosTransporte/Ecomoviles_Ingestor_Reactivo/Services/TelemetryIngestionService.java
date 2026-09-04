@@ -25,15 +25,33 @@ public class TelemetryIngestionService {
      * Orquestador principal: Recibe bytes, decodifica, valida y publica.
      */
     public Mono<Void> processRawData(byte[] rawData) {
+        return processRawData(rawData, null);
+    }
+
+    public Mono<Void> processRawData(byte[] rawData, io.netty.channel.Channel channel) {
         log.debug("Iniciando procesamiento de trama de {} bytes", rawData != null ? rawData.length : 0);
 
-        ProtocolDecoder decoder = decoderFactory.getDecoder(rawData);
-        if (decoder == null) {
-            log.warn("Trama descartada: Protocolo no reconocido o magia de bytes incorrecta");
+        if (rawData != null && rawData.length > 0) {
+            String preview = new String(rawData, 0, Math.min(rawData.length, 32), java.nio.charset.StandardCharsets.US_ASCII);
+            log.debug("Preview rawData (ASCII): {}", preview);
+        }
+
+        if (rawData != null && rawData.length > 0 && !looksLikeIrisFrame(rawData)) {
+            String preview = new String(rawData, 0, Math.min(rawData.length, 32), java.nio.charset.StandardCharsets.US_ASCII);
+            log.debug("Trama descartada antes del decoder: no parece IRIS. preview={}", preview);
             return Mono.empty();
         }
 
-        return decoder.decode(rawData)
+        ProtocolDecoder decoder = decoderFactory.getDecoder(rawData);
+        if (decoder == null) {
+            String preview = rawData != null ? new String(rawData, 0, Math.min(rawData.length, 32), java.nio.charset.StandardCharsets.US_ASCII) : "null";
+            log.warn("Trama descartada: Protocolo no reconocido o magia de bytes incorrecta. longitud={}, preview={}, prefijoEsperado='>32='|' >80='|' >84='", rawData != null ? rawData.length : 0, preview);
+            return Mono.empty();
+        }
+
+        log.info("Decoder seleccionado para trama: {}", decoder.getClass().getSimpleName());
+
+        return decoder.decode(rawData, channel)
                 .filter(data -> {
                     boolean valid = isDataValid(data);
                     if (!valid) log.debug("Mensaje DESCARTADO por validación de negocio para: {}", data.getVehicleId());
@@ -52,6 +70,19 @@ public class TelemetryIngestionService {
                     return Mono.empty();
                 })
                 .then();
+    }
+
+    private boolean looksLikeIrisFrame(byte[] rawData) {
+        if (rawData == null || rawData.length < 5) {
+            return false;
+        }
+
+        if (rawData[0] == '>' && rawData[rawData.length - 1] == '<') {
+            String ascii = new String(rawData, java.nio.charset.StandardCharsets.US_ASCII);
+            return ascii.startsWith(">32=") || ascii.startsWith(">80=") || ascii.startsWith(">84=");
+        }
+
+        return rawData[0] == 0x7E && rawData[rawData.length - 1] == 0x7E;
     }
 
     /**

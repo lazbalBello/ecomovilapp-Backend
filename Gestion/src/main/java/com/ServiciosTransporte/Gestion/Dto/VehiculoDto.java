@@ -10,6 +10,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class VehiculoDto implements Serializable {
 
+    private Long id;
+
     @NotBlank(message = "Se requiere la matrícula")
     @Pattern( regexp = "^[A-Za-z]\\d{6}$",
             message = "Formato de matrícula no válido")
@@ -27,6 +29,10 @@ public class VehiculoDto implements Serializable {
 
     @NotBlank(message = "Se requiere el tipo de bateria")
     private String tipoBateria;
+
+    @Size(max = 15, message = "El IMEI del GPS no puede exceder 15 caracteres")
+    @Pattern(regexp = "^\\d{1,15}$", message = "El IMEI del GPS solo puede contener números")
+    private String imeiDispositivoGps;
 
     private String estado = "ACTIVO";
 }

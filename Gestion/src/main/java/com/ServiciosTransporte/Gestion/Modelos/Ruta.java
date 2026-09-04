@@ -39,6 +39,9 @@ public class Ruta {
     @Column(name = "fecha_eliminacion")
     private LocalDateTime fechaEliminacion;
 
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion;
+
     @OneToMany(mappedBy = "ruta", cascade = CascadeType.ALL)
     @Filter(name = "notDeletedFilter", condition = "fecha_eliminacion IS NULL")
     @ToString.Exclude
@@ -52,6 +55,9 @@ public class Ruta {
     @PrePersist
     @PreUpdate
     private void ordenarCoordenadas(){
+        if (fechaCreacion == null) {
+            fechaCreacion = LocalDateTime.now();
+        }
         if (recorrido != null){
             for (int i = 0; i < recorrido.size(); i++)
                 recorrido.get(i).setOrden(i + 1);

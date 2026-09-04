@@ -16,7 +16,8 @@ import java.util.Objects;
 @Entity
 @Table(indexes = {
         @Index(name = "idx_vehiculo_matricula", columnList = "matricula"),
-        @Index(name = "idx_vehiculo_fecha_eliminacion", columnList = "fecha_eliminacion")
+        @Index(name = "idx_vehiculo_fecha_eliminacion", columnList = "fecha_eliminacion"),
+        @Index(name = "idx_vehiculo_imei_dispositivo_gps", columnList = "imei_dispositivo_gps")
 })
 @Getter
 @Setter
@@ -35,8 +36,21 @@ public class Vehiculo {
     private String marca;
     private String tipoBateria;
 
+    @Column(name = "imei_dispositivo_gps", length = 15)
+    private String imeiDispositivoGps;
+
     @Column(name = "fecha_eliminacion")
     private LocalDateTime fechaEliminacion;
+
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion;
+
+    @PrePersist
+    private void onCreate() {
+        if (fechaCreacion == null) {
+            fechaCreacion = LocalDateTime.now();
+        }
+    }
 
     @Enumerated(EnumType.STRING)
     private EstadoVehiculo estado;

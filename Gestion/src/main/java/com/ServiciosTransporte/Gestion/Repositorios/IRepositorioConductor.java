@@ -3,6 +3,7 @@ package com.ServiciosTransporte.Gestion.Repositorios;
 import com.ServiciosTransporte.Gestion.Modelos.Conductor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,4 +15,7 @@ public interface IRepositorioConductor extends JpaRepository<Conductor , Long> {
     List<Conductor> findByDniContainingIgnoreCase(String dni);
 
     List<Conductor> findByNombreContainingIgnoreCaseOrApellidosContainingIgnoreCase(String NombreQuery, String ApellidosQuery);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(c) FROM Conductor c WHERE c.fechaCreacion >= :desde AND c.fechaEliminacion IS NULL")
+    long countCreadosDesde(@org.springframework.data.repository.query.Param("desde") LocalDateTime desde);
 }
