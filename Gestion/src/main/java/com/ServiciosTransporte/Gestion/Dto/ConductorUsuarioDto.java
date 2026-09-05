@@ -1,9 +1,6 @@
 package com.ServiciosTransporte.Gestion.Dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +12,8 @@ import java.util.List;
 public class ConductorUsuarioDto {
 
     @NotBlank(message = "El nombre de usuario no puede estar en blanco")
+    @Min(value = 4, message = "El nombre de usuaio debe contener al menos 4 caracteres")
+    @Max(value = 10, message = "El nombre de usuaio no puede contener más de 10 caracteres")
     private String nombreUsuario;
 
     @NotBlank(message = "La contraseña no puede estar en blanco")
@@ -46,7 +45,7 @@ public class ConductorUsuarioDto {
     private String apellidos;
 
     @NotEmpty(message = "El conducor debe tener al menos una categoria de licencia")
-    private List<@NotBlank(message = "La categoria no puede estar vacía")
+    private List<@NotBlank(message = "Las categorias no pueden estar vacías")
     @Pattern(regexp = "^(?:FE|[ACD]1?|[BEF])$",
             message = "Categoria no válida")
             String> categoriasLicencia;
