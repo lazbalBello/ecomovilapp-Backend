@@ -34,18 +34,29 @@ public class TelemetryIngestionService {
         }
 
         return decoder.decode(rawData)
-                .filter(data -> {
-                    boolean valid = isDataValid(data);
-                    if (!valid) log.debug("Mensaje DESCARTADO por validación de negocio para: {}", data.getVehicleId());
-                    return valid;
+                .flatMap(this::processTelemetry);
+    }
+
+    /**
+     * Procesa un objeto de telemetría pre-decodificado (ej. desde el handler TCP con framing),
+     * aplica validaciones de integridad y publica reactivamente en Kafka.
+     */
+    public Mono<Void> processTelemetry(TelemetriaVehiculo data) {
+        if (data == null) {
+            return Mono.empty();
+        }
+
+        if (!isDataValid(data)) {
+            log.debug("Mensaje DESCARTADO por validación de negocio para: {}", data.getVehicleId());
+            return Mono.empty();
+        }
+
+        return publishToKafka(data)
+                // AISLAMIENTO DE KAFKA: Si Kafka está caído, fallamos este mensaje pero mantenemos el servicio TCP arriba
+                .onErrorResume(e -> {
+                    log.error("Fallo al publicar en Kafka para el vehículo {}: {}", data.getVehicleId(), e.getMessage());
+                    return Mono.empty();
                 })
-                .flatMap(data -> publishToKafka(data)
-                        // AISLAMIENTO DE KAFKA: Si Kafka está caído, fallamos este mensaje pero mantenemos el servicio TCP arriba
-                        .onErrorResume(e -> {
-                            log.error("Fallo al publicar en Kafka para el vehículo {}: {}", data.getVehicleId(), e.getMessage());
-                            return Mono.empty();
-                        })
-                )
                 // ESCUDO DEL ORQUESTADOR: Garantiza que la tubería TCP siempre reciba un completado (Void), nunca un error de señal
                 .onErrorResume(e -> {
                     log.error("Fallo general no controlado en la cadena de ingestión: ", e);

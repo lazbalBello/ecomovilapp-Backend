@@ -10,4 +10,9 @@ public interface ProtocolDecoder {
 
     // Decodifica y mapea al POJO estándar de Avro
     Mono<TelemetriaVehiculo> decode(byte[] rawData);
+
+    // Decodifica permitiendo pasar el identificador de dispositivo asociado al canal TCP
+    default Mono<TelemetriaVehiculo> decode(byte[] rawData, String deviceId) {
+        return decode(rawData);
+    }
 }

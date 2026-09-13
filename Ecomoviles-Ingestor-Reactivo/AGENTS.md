@@ -7,7 +7,9 @@ Este servicio reactivo (Spring Boot) está dedicado a la ingesta directa y decod
 ## Aclaraciones Críticas (Reglas de Oro para Agentes IA)
 
 - **Responsabilidad Única:** Este servicio SOLO debe realizar la recepción TCP, decodificar, validar formato y producir a Kafka. No debe guardar nada en bases relacionales ni distribuir la data para visualización.
-- **Protocolo y Decodificación:** Actualmente utiliza el estándar JT808. La decodificación en Java se apoya en clases generadas a través del compilador de Kaitai Struct (`.ksy`).
+- **Protocolo y Decodificación:** Soporta decodificación mulitprotocolo mediante demultiplexado dinámico TCP en el puerto 5001:
+  - **JT808**: Protocolo binario decodificado mediante clases generadas por Kaitai Struct (`.ksy`).
+  - **IRIS 807 (Paquete 84)**: Decodificación ASCII delimitada por `>` y `<`, optimizada por búsqueda directa de índices y framing seguro en Netty.
 - **Comunicación de Salida:** Publica la información validada en Kafka, requiriendo los esquemas base ubicados en la librería compartida de la organización (`eventos-flota`).
 
 ## Regla de Mantenimiento Obligatoria
