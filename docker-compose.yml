@@ -3,7 +3,7 @@ services:
   # EDGE PROXY (REVERSE PROXY)
   # ==========================================
   traefik:
-    image: traefik:v3.0
+    image: traefik:v3.6
     container_name: traefik
     command:
       - "--api.insecure=true"
@@ -13,8 +13,8 @@ services:
       - "--entrypoints.tcp_gps.address=:5001"
       #- "--entrypoints.websecure.address=:443" # Para producción con TLS
     ports:
-      - "80:80"
-      - "8080:8080" # Dashboard Traefik (remover en Prod)
+      - "80:80"   # HTTP
+      - "8081:8080" # Dashboard Traefik (remover en Prod)
       - "5001:5001" # Exponer puerto TCP para los dispositivos hardware
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -400,7 +400,7 @@ services:
       - app-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gateway.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.gateway.rule=PathPrefix(`/admin`) || PathPrefix(`/auth`) || PathPrefix(`/publico`) || PathPrefix(`/telemetria`) || PathPrefix(`/usuarios`) || PathPrefix(`/eureka`)"
       - "traefik.http.services.gateway.loadbalancer.server.port=8080"
     restart: unless-stopped
     logging:
@@ -436,6 +436,7 @@ services:
       - JWK_URL=${JWK_URL}
     env_file:
       - .env
+      - .env.mqtt-public
     networks:
       - app-network
     restart: unless-stopped
@@ -562,6 +563,24 @@ services:
         max-size: "10m"
         max-file: "3"
     mem_limit: "384m"
+
+  frontend:
+    build:
+      context: ../Frontend_Urbano_Angular
+      dockerfile: Dockerfile.compose
+    container_name: frontend-urbano
+    depends_on:
+      api-gateway:
+        condition: service_started
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    restart: unless-stopped
 
 volumes:
   gestion_postgres_data:

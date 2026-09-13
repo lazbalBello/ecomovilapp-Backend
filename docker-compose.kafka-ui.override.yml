@@ -1,0 +1,5 @@
+version: '3.8'
+services:
+  kafka-ui:
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m

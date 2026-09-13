@@ -44,6 +44,12 @@ public class ControladorVehiculo {
         return ResponseEntity.ok(vehiculo);
     }
 
+    @GetMapping("/imei")
+    public ResponseEntity<VehiculoLiteDto> buscarPorImei(@RequestParam("imeiDispositivoGps") String imeiDispositivoGps) {
+        VehiculoLiteDto vehiculo = servicioVehiculo.buscarPorImei(imeiDispositivoGps);
+        return ResponseEntity.ok(vehiculo);
+    }
+
     @GetMapping("/matricula")
     public ResponseEntity<List<VehiculoLiteDto>> filtarPorMatricula
             (@RequestParam("matricula") String matricula){

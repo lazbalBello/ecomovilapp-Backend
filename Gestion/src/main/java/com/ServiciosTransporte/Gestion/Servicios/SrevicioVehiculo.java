@@ -34,13 +34,16 @@ public class SrevicioVehiculo {
 
     @Transactional
     public VehiculoDto registrarVehiculo(VehiculoDto vehiculoDto){
+        String imeiNormalizado = normalizarImei(vehiculoDto.getImeiDispositivoGps());
+        vehiculoDto.setImeiDispositivoGps(imeiNormalizado);
+
         Vehiculo vehiculo = vehiculoMapper.toVehiculo(vehiculoDto);
         Vehiculo vehiculoGuardado = repositorioVehiculo.save(vehiculo);
         return vehiculoMapper.toVehiculoDto(vehiculoGuardado);
     }
 
     public List<VehiculoLiteDto> listarVehiculos(){
-         List<Vehiculo> vehiculos = repositorioVehiculo.findAll();
+         List<Vehiculo> vehiculos = repositorioVehiculo.findByFechaEliminacionIsNull();
          return vehiculos.stream()
                  .map(vehiculoLiteDtoMapper::toVehiculoLiteDto)
                  .collect(Collectors.toList());
@@ -54,22 +57,30 @@ public class SrevicioVehiculo {
     }
 
     public VehiculoLiteDto buscarPorMatricula(String matricula){
-        Vehiculo vehiculo = repositorioVehiculo.findByMatricula(matricula)
+        Vehiculo vehiculo = repositorioVehiculo.findByMatriculaAndFechaEliminacionIsNull(matricula)
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "No se encontró el vehículo con la matricula" + matricula));
 
         return vehiculoLiteDtoMapper.toVehiculoLiteDto(vehiculo);
     }
 
+    public VehiculoLiteDto buscarPorImei(String imeiDispositivoGps){
+        String imeiNormalizado = normalizarImei(imeiDispositivoGps);
+        Vehiculo vehiculo = repositorioVehiculo.findByImeiDispositivoGpsAndFechaEliminacionIsNull(imeiNormalizado)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "No se encontró el vehículo con el IMEI " + imeiNormalizado));
+        return vehiculoLiteDtoMapper.toVehiculoLiteDto(vehiculo);
+    }
+
     public List<VehiculoLiteDto> filtrarPorMatricula(String matricula){
-        List<Vehiculo> vehiculos = repositorioVehiculo.findByMatriculaContainingIgnoreCase(matricula);
+        List<Vehiculo> vehiculos = repositorioVehiculo.findByMatriculaContainingIgnoreCaseAndFechaEliminacionIsNull(matricula);
         return vehiculos.stream()
                 .map(vehiculoLiteDtoMapper::toVehiculoLiteDto)
                 .collect(Collectors.toList());
     }
 
     public List<String> sugerirMaricula(String matricula){
-        List<Vehiculo> vehiculos = repositorioVehiculo.findByMatriculaContainingIgnoreCase(matricula);
+        List<Vehiculo> vehiculos = repositorioVehiculo.findByMatriculaContainingIgnoreCaseAndFechaEliminacionIsNull(matricula);
         return vehiculos.stream()
                 .map(Vehiculo::getMatricula)
                 .collect(Collectors.toList());
@@ -83,6 +94,10 @@ public class SrevicioVehiculo {
             Ruta nuevaRuta = repositorioRuta.findById(updateDto.getRutaId())
                     .orElseThrow(()-> new EntityNotFoundException("Ruta no encontrada"));
             vehiculo.setRuta(nuevaRuta);
+        }
+        String imeiNormalizado = normalizarImei(updateDto.getImeiDispositivoGps());
+        if (imeiNormalizado != null) {
+            updateDto.setImeiDispositivoGps(imeiNormalizado);
         }
         vehiculoUpdateMapper.updateVehiculoFromDto(updateDto, vehiculo);
         Vehiculo actualizado = repositorioVehiculo.save(vehiculo);
@@ -98,5 +113,26 @@ public class SrevicioVehiculo {
         repositorioVehiculo.save(vehiculo);
 
         repositorioVehiculoAsignacion.softDeleteFromVehiculo(id, LocalDateTime.now());
+    }
+
+    private String normalizarImei(String imeiDispositivoGps) {
+        if (imeiDispositivoGps == null) {
+            return null;
+        }
+
+        String normalizado = imeiDispositivoGps.trim().replaceAll("\\s+", "");
+        if (normalizado.isEmpty()) {
+            return null;
+        }
+
+        if (normalizado.length() > 15) {
+            throw new IllegalArgumentException("El IMEI del GPS no puede exceder 15 caracteres.");
+        }
+
+        if (!normalizado.matches("\\d{1,15}")) {
+            throw new IllegalArgumentException("El IMEI del GPS solo puede contener números.");
+        }
+
+        return normalizado;
     }
 }

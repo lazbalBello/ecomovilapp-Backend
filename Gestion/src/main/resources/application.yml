@@ -53,8 +53,8 @@ spring:
         oauth2:
             resourceserver:
                 jwt:
-                    issuer-uri: ${ISSUER}
-                    jwk-set-uri: ${JWK_URL}
+                    issuer-uri: ${ISSUER:http://localhost:8080/realms/urbano}
+                    jwk-set-uri: ${JWK_URL:http://localhost:8080/realms/urbano/protocol/openid-connect/certs}
 
       
 

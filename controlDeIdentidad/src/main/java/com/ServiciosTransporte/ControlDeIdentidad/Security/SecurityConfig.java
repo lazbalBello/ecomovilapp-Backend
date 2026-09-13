@@ -29,7 +29,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/auth/registrar-user","/auth/login", "/auth/refrescar"
+                        req.requestMatchers("/auth/registrar-user","/auth/login", "/auth/refrescar", "/auth/public-mqtt-token"
                                 ,"/auth/registrar-admin")
                                 .permitAll()
                                 .requestMatchers("/auth/registrar-driver")

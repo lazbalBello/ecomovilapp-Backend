@@ -8,6 +8,8 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -50,11 +52,12 @@ public class GatewayConfig {
         }
 
         @Bean
+        @Order(Ordered.HIGHEST_PRECEDENCE)
         public CorsWebFilter corsWebFilter() {
                 CorsConfiguration corsConfig = new CorsConfiguration();
                 corsConfig.setAllowedOrigins(List.of("*"));
                 corsConfig.setMaxAge(3600L);
-                corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+                corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
                 corsConfig.setAllowedHeaders(List.of("*"));
 
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -66,6 +69,13 @@ public class GatewayConfig {
         @Bean
         public RouteLocator routesLocator(RouteLocatorBuilder builder) {
                 return builder.routes()
+                                .route("GestionPublico", r -> r.path("/publico/**")
+                                .filters(f -> f
+                                                .requestRateLimiter(config -> config
+                                                                .setRateLimiter(defaultRateLimiter)
+                                                                .setKeyResolver(ipKeyResolver)))
+                                .uri(gestionUri))
+
                                 .route("Gestion", r -> r.path("/admin/**")
                                                 .filters(f -> f
                                                                 .tokenRelay()
@@ -130,6 +140,13 @@ public class GatewayConfig {
                                                                                 .setKeyResolver(ipKeyResolver)))
                                                 .uri(controlDeIdentidadUri))
 
+                                .route("mqttPublicToken", r -> r
+                                                .path("/telemetria/v1/public-token")
+                                                .filters(f -> f
+                                                                .setPath("/auth/public-mqtt-token").requestRateLimiter(config -> config
+                                                                                .setRateLimiter(authRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(controlDeIdentidadUri))
                                 .route("distribucionTelemetriaUri", r -> r
                                                 .path("/telemetria/v1/estado/cambiar")
                                                 .filters(f -> f

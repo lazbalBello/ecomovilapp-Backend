@@ -53,3 +53,5 @@ Keycloak:
    user-password: ${USER_PASSWORD}
    client-id: ${CLIENT_ID}
    client-secret: ${CLIENT_SECRET}
+   mqtt-public-client-id: ${MQTT_PUBLIC_CLIENT_ID}
+   mqtt-public-client-secret: ${MQTT_PUBLIC_CLIENT_SECRET}

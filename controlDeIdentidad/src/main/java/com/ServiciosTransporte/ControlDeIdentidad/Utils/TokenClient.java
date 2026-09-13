@@ -24,6 +24,12 @@ public class TokenClient {
     @Value("${Keycloak.client-secret}")
     private String clientSecret;
 
+    @Value("${Keycloak.mqtt-public-client-id}")
+    private String mqttPublicClientId;
+
+    @Value("${Keycloak.mqtt-public-client-secret}")
+    private String mqttPublicClientSecret;
+
     public TokenClient(@Value("${Keycloak.server-url}") String serverUrl,
                        @Value("${keycloak.realm-name}") String realmName,
                        WebClient.Builder wb) {
@@ -35,6 +41,26 @@ public class TokenClient {
                 .build();
     }
 
+
+    public AccessTokenResponse getPublicMqttToken() {
+        MultiValueMap<String,String> form = new LinkedMultiValueMap<>();
+        form.add("grant_type", "client_credentials");
+        form.add("client_id", mqttPublicClientId);
+        form.add("client_secret", mqttPublicClientSecret);
+
+        AccessTokenResponse tr = wc.post()
+                .uri("/token")
+                .bodyValue(form)
+                .retrieve()
+                .onStatus(status -> status != HttpStatus.OK,
+                        resp -> Mono.error(new AuthenticationFailedException(
+                                "MQTT public token failed: " + resp.statusCode())))
+                .bodyToMono(AccessTokenResponse.class)
+                .block();
+
+        assert tr != null;
+        return tr;
+    }
     public TokenResponse refresh(String refreshToken) {
         MultiValueMap<String,String> form = new LinkedMultiValueMap<>();
         form.add("grant_type",    "refresh_token");

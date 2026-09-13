@@ -2,6 +2,7 @@ package com.ServiciosTransporte.Gestion.DtoUpdate;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,10 @@ public class VehiculoUpdateDto implements Serializable {
     private String marca;
 
     private String tipoBateria;
+
+    @Size(max = 15, message = "El IMEI del GPS no puede exceder 15 caracteres")
+    @Pattern(regexp = "^\\d{1,15}$", message = "El IMEI del GPS solo puede contener números")
+    private String imeiDispositivoGps;
 
     private Integer estado;
 

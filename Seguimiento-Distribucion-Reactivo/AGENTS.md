@@ -8,11 +8,12 @@ Consumir telemetría desde Kafka, aplicar filtros de negocio, persistir estados 
 
 - Paradigma: Totalmente reactivo usando Spring WebFlux. NO se permiten operaciones bloqueantes.
 - Filtros de negocio:
-  - Validar movimiento significativo.
+  - Toda telemetría válida se difunde tanto en movimiento como con el vehículo detenido: los frames de velocidad/posición se publican aunque el vehículo no se haya movido, para que los vehículos parados se vean en vivo en el mapa.
   - Límite de actualización (throttle): máximo 1 actualización cada 2 segundos por vehículo.
 - Caché: almacenar estado y última ubicación de vehículos en Redis para lecturas de baja latencia (usar Redis reactivo).
 - WebSockets: emitir ubicaciones públicamente (sin autenticación) mediante configuración reactiva.
 - Contratos: deserializar eventos de Kafka usando las clases generadas por `eventos-flota`.
+- Consumidor Kafka (patrón REVISADO): Usar una cadena reactiva simple `receive() -> concatMap(procesarí) -> acknowledge()` donde el `acknowledge()` (commit de offset) ocurre SOLO tras procesar realmente el evento. NO usar el combo `groupBy()/flatMap()/publishOn(boundedElastic())/bufferTimeout()`, que produjo un bloqueo silencioso: los offsets se auto-commitaban sin ejecutar la lógica de negocio, dejando la telemetría sin difundir a EMQX/Redis aunque el consumidor quedara con LAG=0.
 
 ## Dependencias Principales
 
@@ -38,5 +39,5 @@ Consumir telemetría desde Kafka, aplicar filtros de negocio, persistir estados 
 - **Redis con contraseña (IMPLEMENTADO):** Este servicio accede a Redis mediante `spring-boot-starter-data-redis-reactive`. Verificar que la conexión use la contraseña (`requirepass`) configurada en el docker-compose; nunca conectarse a Redis sin autenticación en producción.
 - **Kafka consumer reactivo (IMPLEMENTADO, SSL/TLS PENDIENTES):** Asegurar que `reactor-kafka` esté configurado con SSL/TLS en producción para cifrar la comunicación con el broker. Configurar correctamente el `group-id` del consumer para evitar colisiones.
 - **Sin operaciones bloqueantes (IMPLEMENTADO, Necesita revisión):** No introducir llamadas bloqueantes (`Thread.sleep`, JDBC síncrono, etc.) en el código; esto puede colapsar el event loop de Netty y crear un vector de DoS inadvertido.
-- **Throttle como protección (IMPLEMENTADO):** El límite de 1 actualización cada 2 segundos por vehículo también actúa como protección ante floods de datos; mantener esta regla y evaluar reducir el límite si el tráfico crece.
+- **Throttle como protección (IMPLEMENTADO):** El límite de 1 actualización cada 2 segundos por vehículo también actúa como protección ante floods de datos; mantener esta regla y evaluar reducir el límite si el tráfico crece. Antes esto se combinaba con un umbral de movimiento de 10m que descartaba mensajes de vehículos detenidos; ahora la publicación ya no se supone por falta de movimiento.
 - **Schema Registry (IMPLEMENTADO):** Asegurar que el Schema Registry sea accesible únicamente desde la red interna; un Schema Registry público podría revelar la estructura de datos del sistema.
