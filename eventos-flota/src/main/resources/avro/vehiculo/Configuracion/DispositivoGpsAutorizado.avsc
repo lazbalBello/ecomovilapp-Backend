@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "DispositivoGpsAutorizado",
+  "namespace": "com.servicioTransporte.flota.eventos.vehiculo.configuracion",
+  "doc": "Evento de sincronización de autorización de hardware GPS para la flota",
+  "fields": [
+    {"name": "gpsId", "type": "string", "doc": "Identificador único de hardware del GPS (IMEI o ID numérico)"},
+    {"name": "matricula", "type": ["null", "string"], "default": null, "doc": "Matrícula del vehículo asociado"},
+    {"name": "activo", "type": "boolean", "doc": "true si está habilitado para emitir telemetría, false si fue revocado o desasignado"},
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Momento de emisión del evento en milisegundos UTC"
+    }
+  ]
+}

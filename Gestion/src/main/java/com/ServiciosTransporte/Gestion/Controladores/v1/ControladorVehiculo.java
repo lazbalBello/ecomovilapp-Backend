@@ -58,6 +58,18 @@ public class ControladorVehiculo {
         return ResponseEntity.ok(matriculas);
     }
 
+    @GetMapping("/gps/{gpsId}")
+    public ResponseEntity<VehiculoLiteDto> buscarPorGpsId(@PathVariable String gpsId){
+        VehiculoLiteDto vehiculo = servicioVehiculo.buscarPorGpsId(gpsId);
+        return ResponseEntity.ok(vehiculo);
+    }
+
+    @GetMapping("/vehiculo/gps")
+    public ResponseEntity<VehiculoLiteDto> buscarPorGpsIdParam(@RequestParam("gpsId") String gpsId){
+        VehiculoLiteDto vehiculo = servicioVehiculo.buscarPorGpsId(gpsId);
+        return ResponseEntity.ok(vehiculo);
+    }
+
     @PatchMapping("/actualizar/{id}")
     public ResponseEntity<VehiculoLiteDto> actualizarVehiculo
             (@PathVariable Long id, @RequestBody @Valid VehiculoUpdateDto updateDto){
@@ -65,9 +77,21 @@ public class ControladorVehiculo {
         return ResponseEntity.ok(actualizado);
     }
 
+    @PatchMapping("/{id}/desasociar-gps")
+    public ResponseEntity<VehiculoLiteDto> desasociarGps(@PathVariable Long id){
+        VehiculoLiteDto vehiculo = servicioVehiculo.desasociarGps(id);
+        return ResponseEntity.ok(vehiculo);
+    }
+
     @DeleteMapping("/eliminar/{id}")
     public ResponseEntity<Void> eliminarVehiculo(@PathVariable Long id){
         servicioVehiculo.softDeleteVehiculo(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Retorna todos los vehículos eliminados (soft delete) — solo administradores. */
+    @GetMapping("/eliminados")
+    public ResponseEntity<List<VehiculoLiteDto>> listarEliminados(){
+        return ResponseEntity.ok(servicioVehiculo.listarEliminados());
     }
 }

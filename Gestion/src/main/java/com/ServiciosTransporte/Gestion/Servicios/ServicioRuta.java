@@ -82,17 +82,22 @@ public class ServicioRuta {
         return rutaLiteDtoMapper.toRutaDtoResponse(actualizada);
     }
 
+    /** Devuelve todas las rutas que han sido eliminadas (soft delete). */
     @Transactional
-    public void softDelete(Long id, boolean deleteParadas){
+    public List<RutaLiteDto> listarEliminadas(){
+        return repositorioRuta.findAllEliminadas().stream()
+                .map(rutaLiteDtoMapper::toRutaDtoResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void softDelete(Long id){
         Ruta ruta = repositorioRuta.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Ruta no encontrada con id " + id));
 
         ruta.setFechaEliminacion(LocalDateTime.now());
         repositorioRuta.save(ruta);
-
-        if (deleteParadas){
-            repositorioParada.softDeleteFromRuta(id, LocalDateTime.now());
-        }
+        repositorioParada.softDeleteFromRuta(id, LocalDateTime.now());
         repositorioVehiculo.desasociarRuta(id);
     }
 }

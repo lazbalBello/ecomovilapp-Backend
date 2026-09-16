@@ -17,5 +17,13 @@ public interface IRepositorioParada extends JpaRepository<Parada, Long> {
 
     @Modifying
     @Query("UPDATE Parada p SET p.fechaEliminacion = :now WHERE p.ruta.id = :rutaId AND p.fechaEliminacion IS NULL")
-    int softDeleteFromRuta(@Param("rutaId")Long rutaId, @Param("now")LocalDateTime now);
+    int softDeleteFromRuta(@Param("rutaId") Long rutaId, @Param("now") LocalDateTime now);
+
+    /**
+     * Devuelve todas las paradas que han sido eliminadas (soft delete).
+     * Usa SQL nativo para eludir el filtro {@code @SQLRestriction} de la entidad.
+     */
+    @Query(value = "SELECT * FROM parada WHERE fecha_eliminacion IS NOT NULL ORDER BY fecha_eliminacion DESC",
+           nativeQuery = true)
+    List<Parada> findAllEliminadas();
 }

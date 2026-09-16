@@ -79,11 +79,6 @@
 			<artifactId>avro</artifactId>
 			<version>1.11.3</version>
 		</dependency>
-		<dependency>
-			<groupId>io.confluent</groupId>
-			<artifactId>kafka-avro-serializer</artifactId>
-			<version>7.7.0</version>
-		</dependency>
 	</dependencies>
 
 	<repositories>

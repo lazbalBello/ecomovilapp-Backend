@@ -70,9 +70,15 @@ public class ControladorRuta {
     }
 
     @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<Void> eliminarRuta
-            (@PathVariable Long id, @RequestParam("deleteParadas") boolean deleteParadas){
-        servicioRuta.softDelete(id,deleteParadas);
+    public ResponseEntity<Void> eliminarRuta(
+            @PathVariable Long id){
+        servicioRuta.softDelete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Retorna todas las rutas eliminadas (soft delete) — solo administradores. */
+    @GetMapping("/eliminadas")
+    public ResponseEntity<List<RutaLiteDto>> listarEliminadas(){
+        return ResponseEntity.ok(servicioRuta.listarEliminadas());
     }
 }

@@ -16,6 +16,8 @@ public class VehiculoUpdateDto implements Serializable {
             message = "Formato de matrícula no válido")
     private String matricula;
 
+    private String gpsId;
+
     @Min(value = 1, message = "La capacidad de personas debe ser al menos 1")
     private Integer capacidadPersonas;
 

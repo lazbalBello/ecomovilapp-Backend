@@ -78,4 +78,10 @@ public class ControladorConductor {
         servicioConductor.softDeleteConductor(id);
         return ResponseEntity.noContent().build();
     }
+
+    /** Retorna todos los conductores eliminados (soft delete) — solo administradores. */
+    @GetMapping("/eliminados")
+    public ResponseEntity<List<ConductorLiteDto>> listarEliminados(){
+        return ResponseEntity.ok(servicioConductor.listarEliminados());
+    }
 }

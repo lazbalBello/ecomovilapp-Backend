@@ -18,6 +18,7 @@ public class TelemetryIngestionService {
 
     private final DecoderFactory decoderFactory;
     private final KafkaSender<String, TelemetriaVehiculo> kafkaSender;
+    private final GpsAuthorizationService authorizationService;
 
     private static final String TOPIC = "vehiculos-entrada-telemetria";
 
@@ -70,9 +71,15 @@ public class TelemetryIngestionService {
      * Evita que datos corruptos lleguen a Kafka.
      */
     private boolean isDataValid(TelemetriaVehiculo data) {
-        // 1. Identificación básica
+        // 1. Identificación básica y autorización de lista blanca
         if (data.getVehicleId() == null || data.getVehicleId().toString().isEmpty()) {
             log.debug("Descartado: Sin VehicleId");
+            return false;
+        }
+
+        String vehicleId = data.getVehicleId().toString().trim();
+        if (!authorizationService.isAuthorized(vehicleId)) {
+            log.warn("Telemetría DESCARTADA: Dispositivo GPS [{}] no autorizado en el sistema", vehicleId);
             return false;
         }
 

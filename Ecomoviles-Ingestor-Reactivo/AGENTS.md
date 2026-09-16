@@ -10,6 +10,7 @@ Este servicio reactivo (Spring Boot) está dedicado a la ingesta directa y decod
 - **Protocolo y Decodificación:** Soporta decodificación mulitprotocolo mediante demultiplexado dinámico TCP en el puerto 5001:
   - **JT808**: Protocolo binario decodificado mediante clases generadas por Kaitai Struct (`.ksy`).
   - **IRIS 807 (Paquete 84)**: Decodificación ASCII delimitada por `>` y `<`, optimizada por búsqueda directa de índices y framing seguro en Netty.
+- **Control de Acceso No Bloqueante (Whitelist de GPS):** Mantiene una lista blanca en memoria RAM sincronizada de forma reactiva con el topic compactado de Kafka `flota-dispositivos-autorizados` (emitido desde `Gestion`). Descarta en nanosegundos cualquier trama de hardware GPS no registrado en el sistema.
 - **Comunicación de Salida:** Publica la información validada en Kafka, requiriendo los esquemas base ubicados en la librería compartida de la organización (`eventos-flota`).
 
 ## Regla de Mantenimiento Obligatoria

@@ -81,7 +81,7 @@ public class ProtocolDemultiplexerHandler extends ByteToMessageDecoder {
                 // Decodificación de trama IRIS y envío a la tubería de ingesta
                 decoder.decode(frame, channelDeviceId)
                         .flatMap(telemetria -> {
-                            log.info("Canal TCP {} - Telemetría IRIS decodificada: Vehículo={}, Lat={}, Lon={}",
+                            log.debug("Canal TCP {} - Telemetría IRIS decodificada: Vehículo={}, Lat={}, Lon={}",
                                     ctx.channel().id().asShortText(), telemetria.getVehicleId(), telemetria.getLatitude(), telemetria.getLongitude());
                             return ingestionService.processTelemetry(telemetria);
                         })

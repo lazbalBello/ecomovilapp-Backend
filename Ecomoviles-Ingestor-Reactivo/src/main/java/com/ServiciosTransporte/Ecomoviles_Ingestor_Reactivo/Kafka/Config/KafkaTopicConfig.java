@@ -33,4 +33,13 @@ public class KafkaTopicConfig {
                 .config("cleanup.policy", "delete")
                 .build();
     }
+
+    @Bean
+    public NewTopic flotaDispositivosAutorizadosTopic() {
+        return TopicBuilder.name("flota-dispositivos-autorizados")
+                .partitions(3)
+                .replicas(1)
+                .compact()
+                .build();
+    }
 }

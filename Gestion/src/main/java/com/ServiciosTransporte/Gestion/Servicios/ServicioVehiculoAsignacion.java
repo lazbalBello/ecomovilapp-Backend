@@ -74,6 +74,14 @@ public class ServicioVehiculoAsignacion {
         return asignacionLiteDtoMapper.toAsignacionLiteDto(actualizada);
     }
 
+    /** Devuelve todas las asignaciones que han sido eliminadas (soft delete). */
+    @Transactional
+    public List<AsignacionLiteDto> listarEliminadas(){
+        return repositorioVehiculoAsignacion.findAllEliminadas().stream()
+                .map(asignacionLiteDtoMapper::toAsignacionLiteDto)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void softDeleteAsignacion(Long id){
         VehiculoAsignacion asignacion = repositorioVehiculoAsignacion.findById(id)

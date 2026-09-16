@@ -48,4 +48,10 @@ public class ControladorVehiculoAsignacion {
         servicioVehiculoAsignacion.softDeleteAsignacion(id);
         return ResponseEntity.noContent().build();
     }
+
+    /** Retorna todas las asignaciones eliminadas (soft delete) — solo administradores. */
+    @GetMapping("/eliminadas")
+    public ResponseEntity<List<AsignacionLiteDto>> listarEliminadas(){
+        return ResponseEntity.ok(servicioVehiculoAsignacion.listarEliminadas());
+    }
 }

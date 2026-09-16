@@ -14,6 +14,7 @@ public class VehiculoLiteDto implements Serializable {
 
     private Long id;
     private String matricula;
+    private String gpsId;
     private int capacidadPersonas;
     private String modelo;
     private String marca;

@@ -31,4 +31,13 @@ public class kafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic topicDispositivosAutorizados() {
+        return TopicBuilder.name("flota-dispositivos-autorizados")
+                .partitions(3)
+                .replicas(1)
+                .compact()
+                .build();
+    }
 }

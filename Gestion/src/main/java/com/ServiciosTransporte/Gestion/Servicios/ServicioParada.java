@@ -89,6 +89,14 @@ public class ServicioParada {
         return paradaLiteDtoMapper.toParadaLiteDto(actualizada);
     }
 
+    /** Devuelve todas las paradas que han sido eliminadas (soft delete). */
+    @Transactional
+    public List<ParadaLiteDto> listarEliminadas(){
+        return repositorioParada.findAllEliminadas().stream()
+                .map(paradaLiteDtoMapper::toParadaLiteDto)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void softDeleteParada(Long id){
         Parada parada = repositorioParada.findById(id)

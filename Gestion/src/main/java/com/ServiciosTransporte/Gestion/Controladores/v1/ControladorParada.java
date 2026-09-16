@@ -63,4 +63,10 @@ public class ControladorParada {
         servicioParada.softDeleteParada(id);
         return ResponseEntity.noContent().build();
     }
+
+    /** Retorna todas las paradas eliminadas (soft delete) — solo administradores. */
+    @GetMapping("/eliminadas")
+    public ResponseEntity<List<ParadaLiteDto>> listarEliminadas(){
+        return ResponseEntity.ok(servicioParada.listarEliminadas());
+    }
 }

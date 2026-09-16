@@ -99,6 +99,14 @@ public class ServicioConductor {
         return conductorLiteDtoMapper.toConductorLiteDto(actualizado);
     }
 
+    /** Devuelve todos los conductores que han sido eliminados (soft delete). */
+    @Transactional
+    public List<ConductorLiteDto> listarEliminados(){
+        return repositorioConductor.findAllEliminados().stream()
+                .map(conductorLiteDtoMapper::toConductorLiteDto)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void softDeleteConductor(Long id){
         Conductor conductor = repositorioConductor.findById(id)
