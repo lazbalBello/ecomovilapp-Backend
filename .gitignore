@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+## Antigraviti ##
+.antigravitycli
+
 ### Entorno ###
 **/.env
 **/.env.*
