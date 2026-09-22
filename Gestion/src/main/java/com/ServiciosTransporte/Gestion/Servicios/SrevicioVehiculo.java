@@ -1,5 +1,7 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
+import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
+import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.VehiculoDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.VehiculoUpdateDto;
@@ -44,6 +46,7 @@ public class SrevicioVehiculo {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
+    @Auditable(tabla = "vehiculo", operacion = TipoOperacion.CREACION, entidad = Vehiculo.class)
     public VehiculoDto registrarVehiculo(VehiculoDto vehiculoDto){
         Vehiculo vehiculo = vehiculoMapper.toVehiculo(vehiculoDto);
         Vehiculo vehiculoGuardado = repositorioVehiculo.save(vehiculo);
@@ -100,9 +103,34 @@ public class SrevicioVehiculo {
     }
 
     @Transactional
+    @Auditable(tabla = "vehiculo", operacion = TipoOperacion.MODIFICACION, entidad = Vehiculo.class)
     public VehiculoLiteDto actualizarVehiculo(Long id, VehiculoUpdateDto updateDto){
         Vehiculo vehiculo = repositorioVehiculo.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró el vehiculo con el id " + id));
+
+        // Validación preventiva de matrícula duplicada
+        if (updateDto.getMatricula() != null && !updateDto.getMatricula().trim().isEmpty()
+                && !updateDto.getMatricula().trim().equalsIgnoreCase(vehiculo.getMatricula())) {
+            repositorioVehiculo.findByMatricula(updateDto.getMatricula().trim())
+                    .ifPresent(otro -> {
+                        if (!otro.getId().equals(id)) {
+                            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                    "Ya existe un vehículo con la matrícula: " + updateDto.getMatricula().trim());
+                        }
+                    });
+        }
+
+        // Validación preventiva de GPS ID duplicado
+        if (updateDto.getGpsId() != null && !updateDto.getGpsId().trim().isEmpty()
+                && !updateDto.getGpsId().trim().equals(vehiculo.getGpsId())) {
+            repositorioVehiculo.findByGpsId(updateDto.getGpsId().trim())
+                    .ifPresent(otro -> {
+                        if (!otro.getId().equals(id)) {
+                            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                    "Ya existe un vehículo con el GPS ID: " + updateDto.getGpsId().trim());
+                        }
+                    });
+        }
 
         String gpsAnterior = vehiculo.getGpsId();
 
@@ -127,6 +155,7 @@ public class SrevicioVehiculo {
     }
 
     @Transactional
+    @Auditable(tabla = "vehiculo", operacion = TipoOperacion.MODIFICACION, entidad = Vehiculo.class)
     public VehiculoLiteDto desasociarGps(Long id){
         Vehiculo vehiculo = repositorioVehiculo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el vehículo con el id " + id));
@@ -153,6 +182,7 @@ public class SrevicioVehiculo {
     }
 
     @Transactional
+    @Auditable(tabla = "vehiculo", operacion = TipoOperacion.SOFT_DELETE, entidad = Vehiculo.class)
     public void softDeleteVehiculo(Long id){
         Vehiculo vehiculo = repositorioVehiculo.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Vehiculo no encontrado con Id " + id));

@@ -16,9 +16,33 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.transaction.UnexpectedRollbackException;
+import org.springframework.web.server.ResponseStatusException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<?> handleResponseStatusException(ResponseStatusException ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("estado", ex.getStatusCode().value());
+        body.put("error", ex.getReason() != null ? ex.getReason() : ex.getMessage());
+        body.put("mensage", ex.getReason() != null ? ex.getReason() : ex.getMessage());
+        body.put("path", request.getDescription(false));
+        return new ResponseEntity<>(body, ex.getStatusCode());
+    }
+
+    @ExceptionHandler(UnexpectedRollbackException.class)
+    public ResponseEntity<?> handleUnexpectedRollback(UnexpectedRollbackException ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("estado", HttpStatus.CONFLICT.value());
+        body.put("error", "Error de integridad: la transacción fue revertida debido a una inconsistencia de datos.");
+        body.put("mensage", ex.getMessage());
+        body.put("path", request.getDescription(false));
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handlerGeneralException(Exception ex){

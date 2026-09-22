@@ -1,5 +1,7 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
+import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
+import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.ConductorDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.ConductorLiteDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.ConductorSugerenciaDto;
@@ -39,6 +41,7 @@ public class ServicioConductor {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
+    @Auditable(tabla = "conductor", operacion = TipoOperacion.CREACION, entidad = Conductor.class)
     public ConductorDto registrarConductor(@Valid ConductorDto conductorDto){
         Conductor conductor = conductorMapper.toConductor(conductorDto);
         Conductor conductorGuardado = repositorioConductor.save(conductor);
@@ -89,9 +92,22 @@ public class ServicioConductor {
     }
 
     @Transactional
+    @Auditable(tabla = "conductor", operacion = TipoOperacion.MODIFICACION, entidad = Conductor.class)
     public ConductorLiteDto actualizarConductor(Long id, ConductorUpdateDto updateDto){
         Conductor conductor = repositorioConductor.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró el conductor con el id " + id));
+
+        if (updateDto.getDni() != null && !updateDto.getDni().trim().isEmpty()
+                && !updateDto.getDni().trim().equalsIgnoreCase(conductor.getDni())) {
+            repositorioConductor.findByDni(updateDto.getDni().trim())
+                    .ifPresent(otro -> {
+                        if (!otro.getId().equals(id)) {
+                            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                    "Ya existe un conductor con el DNI: " + updateDto.getDni().trim());
+                        }
+                    });
+        }
+
         conductorUpdateDtoMapper.updateConductorFromDto(updateDto,conductor);
         if (updateDto.getCategoriasLicencia() != null)
             conductor.getCategoriasLicencia().addAll(updateDto.getCategoriasLicencia());
@@ -108,6 +124,7 @@ public class ServicioConductor {
     }
 
     @Transactional
+    @Auditable(tabla = "conductor", operacion = TipoOperacion.SOFT_DELETE, entidad = Conductor.class)
     public void softDeleteConductor(Long id){
         Conductor conductor = repositorioConductor.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Conductor no encontrado con id " + id));

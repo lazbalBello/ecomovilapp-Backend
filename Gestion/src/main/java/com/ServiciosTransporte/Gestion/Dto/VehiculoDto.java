@@ -10,6 +10,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class VehiculoDto implements Serializable {
 
+    /** Poblado al retornar la entidad guardada; ignorado al mapear DTO→Entidad. */
+    private Long id;
+
     @NotBlank(message = "Se requiere la matrícula")
     @Pattern( regexp = "^[A-Za-z]\\d{6}$",
             message = "Formato de matrícula no válido")

@@ -1,5 +1,7 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
+import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
+import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.RutaDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.RutaLiteDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.RutaMapaDto;
@@ -39,6 +41,7 @@ public class ServicioRuta {
     private final RutaMapaDtoMapper rutaMapaDtoMapper;
 
     @Transactional
+    @Auditable(tabla = "ruta", operacion = TipoOperacion.CREACION, entidad = Ruta.class)
     public RutaDto registrarRuta(RutaDto rutaDto){
         Ruta ruta = rutaMapper.toRuta(rutaDto);
         Ruta rutaGuardada = repositorioRuta.save(ruta);
@@ -74,6 +77,7 @@ public class ServicioRuta {
     }
 
     @Transactional
+    @Auditable(tabla = "ruta", operacion = TipoOperacion.MODIFICACION, entidad = Ruta.class)
     public RutaLiteDto actualizarRuta(Long id, RutaUpdateDto updateDto){
         Ruta ruta = repositorioRuta.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró la ruta con el id " + id));
@@ -91,6 +95,7 @@ public class ServicioRuta {
     }
 
     @Transactional
+    @Auditable(tabla = "ruta", operacion = TipoOperacion.SOFT_DELETE, entidad = Ruta.class)
     public void softDelete(Long id){
         Ruta ruta = repositorioRuta.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Ruta no encontrada con id " + id));

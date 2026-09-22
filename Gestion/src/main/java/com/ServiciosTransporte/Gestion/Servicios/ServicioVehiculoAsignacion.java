@@ -1,5 +1,7 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
+import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
+import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.VehiculoAsignacionDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.AsignacionLiteDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.AsignacionUpdateDto;
@@ -34,6 +36,7 @@ public class ServicioVehiculoAsignacion {
     private final AsignacionUpdateDtoMapper asignacionUpdateDtoMapper;
 
     @Transactional
+    @Auditable(tabla = "vehiculo_asignacion", operacion = TipoOperacion.CREACION, entidad = VehiculoAsignacion.class)
     public AsignacionLiteDto asignarConductorAVehiculo(VehiculoAsignacionDto vadto){
         Vehiculo vehiculo = repositorioVehiculo.findById(vadto.getVehiculoId())
                 .orElseThrow(()-> new RuntimeException("Vehiculo no encontrado"));
@@ -66,6 +69,7 @@ public class ServicioVehiculoAsignacion {
     }
 
     @Transactional
+    @Auditable(tabla = "vehiculo_asignacion", operacion = TipoOperacion.MODIFICACION, entidad = VehiculoAsignacion.class)
     public AsignacionLiteDto actualizarAsignacion(Long id, AsignacionUpdateDto updateDto){
         VehiculoAsignacion asignacion = repositorioVehiculoAsignacion.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Asignación no encontrada"));
@@ -83,6 +87,7 @@ public class ServicioVehiculoAsignacion {
     }
 
     @Transactional
+    @Auditable(tabla = "vehiculo_asignacion", operacion = TipoOperacion.SOFT_DELETE, entidad = VehiculoAsignacion.class)
     public void softDeleteAsignacion(Long id){
         VehiculoAsignacion asignacion = repositorioVehiculoAsignacion.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Asignación no encontrada con el id " + id));

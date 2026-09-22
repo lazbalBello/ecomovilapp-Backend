@@ -1,5 +1,7 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
+import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
+import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.ParadaDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.ParadaLiteDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.ParadaMapaDto;
@@ -37,6 +39,7 @@ public class ServicioParada {
     private final ParadaMapaDtoMapper paradaMapaDtoMapper;
 
     @Transactional
+    @Auditable(tabla = "parada", operacion = TipoOperacion.CREACION, entidad = Parada.class)
     public ParadaLiteDto registrarParada(ParadaDto paradaDto){
         Parada parada = paradaMapper.toParada(paradaDto);
         Ruta ruta = repositorioRuta.findById(paradaDto.getRutaID())
@@ -76,6 +79,7 @@ public class ServicioParada {
     }
 
     @Transactional
+    @Auditable(tabla = "parada", operacion = TipoOperacion.MODIFICACION, entidad = Parada.class)
     public ParadaLiteDto actualizarParada(Long id, ParadaUpdateDto updateDto){
         Parada parada = repositorioParada.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró la parada con el id " + id));
@@ -98,6 +102,7 @@ public class ServicioParada {
     }
 
     @Transactional
+    @Auditable(tabla = "parada", operacion = TipoOperacion.SOFT_DELETE, entidad = Parada.class)
     public void softDeleteParada(Long id){
         Parada parada = repositorioParada.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Parada no encontrada con id " + id));

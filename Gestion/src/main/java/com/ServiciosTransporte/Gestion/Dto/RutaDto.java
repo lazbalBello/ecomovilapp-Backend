@@ -15,6 +15,9 @@ import java.util.List;
 @NoArgsConstructor
 public class RutaDto implements Serializable {
 
+    /** Poblado al retornar la entidad guardada; ignorado al mapear DTO→Entidad. */
+    private Long id;
+
     @NotBlank(message = "El nombre de la ruta no debe estar en blanco")
     @Pattern(regexp = "^[\\p{L}\\p{N}\\s]+$",
             message = "El nombre no debe tener caracteres especiales")

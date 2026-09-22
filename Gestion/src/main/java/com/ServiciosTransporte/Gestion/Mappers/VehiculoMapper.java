@@ -14,5 +14,6 @@ public interface VehiculoMapper {
     VehiculoDto toVehiculoDto(Vehiculo vehiculo);
 
     @Mapping(target = "ruta", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Vehiculo toVehiculo(VehiculoDto vehiculoDto);
 }

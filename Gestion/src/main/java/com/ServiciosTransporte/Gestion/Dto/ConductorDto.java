@@ -12,6 +12,9 @@ import java.util.List;
 @NoArgsConstructor
 public class ConductorDto implements Serializable {
 
+    /** Poblado al retornar la entidad guardada; ignorado al mapear DTO→Entidad. */
+    private Long id;
+
     @NotBlank(message = "El dni no puede estar en blanco")
     @Pattern(
             regexp = "^\\d{11}$",

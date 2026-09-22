@@ -10,6 +10,7 @@ API REST que actúa como servidor de recursos para operaciones CRUD sobre vehíc
 - Integración Kafka (orquestación tipo Saga): escucha eventos de creación de usuarios desde `identidad`, registra el conductor en PostgreSQL y publica eventos de éxito/fallo para coordinar rollback si corresponde.
 - Contratos: usar las clases generadas por `eventos-flota` para publicar/consumir mensajes en Kafka.
 - Manejo de errores: centralizado mediante `GlobalExceptionHandler`.
+- Módulo de Auditoría Centralizada: implementado con Spring AOP (`@Auditable`), capturando snapshots (`datosAnteriores`, `datosNuevos`) en columnas `JSONB` de PostgreSQL en la tabla `auditoria_log`, ejecutado de manera aislada con `@Transactional(propagation = Propagation.REQUIRES_NEW)`. Se consulta mediante `ControladorAuditoria` en `/admin/Auditoria/v1`.
 
 ## Dependencias Principales
 
