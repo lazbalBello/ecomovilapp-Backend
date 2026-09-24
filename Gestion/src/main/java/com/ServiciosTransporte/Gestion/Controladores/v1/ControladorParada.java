@@ -45,12 +45,6 @@ public class ControladorParada {
         return ResponseEntity.ok(paradas);
     }
 
-    @GetMapping("/listar/mapa")
-    public ResponseEntity<List<ParadaMapaDto>> listarParaMapa(){
-        List<ParadaMapaDto> paradas = servicioParada.listarParaMapa();
-        return ResponseEntity.ok(paradas);
-    }
-
     @PatchMapping("/actualizar/{id}")
     public ResponseEntity<ParadaLiteDto> actualizarParada
             (@PathVariable Long id, @Valid @RequestBody ParadaUpdateDto updateDto){

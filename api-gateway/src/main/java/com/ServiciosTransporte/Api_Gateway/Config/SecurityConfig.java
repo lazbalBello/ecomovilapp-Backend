@@ -14,7 +14,7 @@ public class SecurityConfig {
                 return http
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                                 .authorizeExchange(exchanges -> exchanges
-                                                .pathMatchers("/auth/**", "/telemetria/v1/webhook")
+                                                .pathMatchers("/auth/**", "/telemetria/v1/webhook","/public/**")
                                                 .permitAll()
                                                 .anyExchange()
                                                 .authenticated())

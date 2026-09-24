@@ -39,14 +39,17 @@ public class GatewayConfig {
         private final KeyResolver ipKeyResolver;
         private final RedisRateLimiter defaultRateLimiter;
         private final RedisRateLimiter authRateLimiter;
+        private final RedisRateLimiter publicRateLimiter;
 
         public GatewayConfig(
                         KeyResolver ipKeyResolver,
                         @Qualifier("defaultRateLimiter") RedisRateLimiter defaultRateLimiter,
-                        @Qualifier("authRateLimiter") RedisRateLimiter authRateLimiter) {
+                        @Qualifier("authRateLimiter") RedisRateLimiter authRateLimiter,
+                        @Qualifier("publicRateLimiter") RedisRateLimiter publicRateLimiter) {
                 this.ipKeyResolver = ipKeyResolver;
                 this.defaultRateLimiter = defaultRateLimiter;
                 this.authRateLimiter = authRateLimiter;
+                this.publicRateLimiter = publicRateLimiter;
         }
 
         @Bean
@@ -138,6 +141,13 @@ public class GatewayConfig {
                                                                                 .setRateLimiter(defaultRateLimiter)
                                                                                 .setKeyResolver(ipKeyResolver)))
                                                 .uri(distribucionTelemetriaUri))
+
+                                .route("GestionPublic", r -> r.path("/public/**")
+                                                .filters(f -> f
+                                                                .requestRateLimiter(config -> config
+                                                                                .setRateLimiter(publicRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(gestionUri))
                                 .build();
         }
 }

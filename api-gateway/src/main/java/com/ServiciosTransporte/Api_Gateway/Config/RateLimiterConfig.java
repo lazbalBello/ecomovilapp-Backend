@@ -45,4 +45,13 @@ public class RateLimiterConfig {
     public RedisRateLimiter authRateLimiter() {
         return new RedisRateLimiter(5, 10, 1);
     }
+
+    /**
+     * Rate limiter estricto para rutas públicas: 3 req/s, pico de 5.
+     * Protege endpoints públicos sin autenticación contra abuso.
+     */
+    @Bean
+    public RedisRateLimiter publicRateLimiter() {
+        return new RedisRateLimiter(3, 5, 1);
+    }
 }

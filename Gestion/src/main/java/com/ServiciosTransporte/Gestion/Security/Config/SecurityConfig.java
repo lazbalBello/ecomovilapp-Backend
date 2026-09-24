@@ -31,6 +31,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers("/auth/**")
                                 .permitAll()
+                                .requestMatchers("/public/**")
+                                .permitAll()
                                 .requestMatchers("/admin/**")
                                 .hasRole("admin")
                                 .requestMatchers("/user/**")
