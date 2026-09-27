@@ -125,7 +125,7 @@ public class GatewayConfig {
                                                 .uri(controlDeIdentidadUri))
 
                                 .route("controlDeIdentidad", r -> r
-                                                .path("/auth/login", "/usuarios/**", "/auth/refrescar")
+                                                .path("/auth/login", "/usuarios/**", "/auth/refrescar", "/auth/guest-token")
                                                 .filters(f -> f
                                                                 .tokenRelay()
                                                                 .requestRateLimiter(config -> config

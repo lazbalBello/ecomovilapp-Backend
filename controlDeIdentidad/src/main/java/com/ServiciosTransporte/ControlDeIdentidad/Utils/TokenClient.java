@@ -24,6 +24,12 @@ public class TokenClient {
     @Value("${Keycloak.client-secret}")
     private String clientSecret;
 
+    @Value("${Keycloak.guest-client-id}")
+    private String guestClientId;
+
+    @Value("${Keycloak.guest-client-secret}")
+    private String guestClientSecret;
+
     public TokenClient(@Value("${Keycloak.server-url}") String serverUrl,
                        @Value("${keycloak.realm-name}") String realmName,
                        WebClient.Builder wb) {
@@ -49,6 +55,31 @@ public class TokenClient {
                 .onStatus(status -> status != HttpStatus.OK,
                         resp -> Mono.error(new AuthenticationFailedException(
                                 "Refresh failed: " + resp.statusCode())))
+                .bodyToMono(AccessTokenResponse.class)
+                .block();
+
+        assert tr != null;
+        return new TokenResponse(
+                tr.getToken(),
+                tr.getRefreshToken(),
+                tr.getExpiresIn(),
+                tr.getRefreshExpiresIn()
+        );
+    }
+
+    public TokenResponse getGuestToken() {
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("grant_type", "client_credentials");
+        form.add("client_id", guestClientId);
+        form.add("client_secret", guestClientSecret);
+
+        AccessTokenResponse tr = wc.post()
+                .uri("/token")
+                .bodyValue(form)
+                .retrieve()
+                .onStatus(status -> status != HttpStatus.OK,
+                        resp -> Mono.error(new AuthenticationFailedException(
+                                "Guest token request failed: " + resp.statusCode())))
                 .bodyToMono(AccessTokenResponse.class)
                 .block();
 

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,5 +51,11 @@ public class ControladorAutenticacion {
     public ResponseEntity<TokenResponse> refrescar(@Valid @RequestBody RefreshToken token){
         TokenResponse newTokens = tokenClient.refresh(token.refreshToken());
         return ResponseEntity.ok(newTokens);
+    }
+
+    @GetMapping("/guest-token")
+    public ResponseEntity<TokenResponse> guestToken(){
+        TokenResponse guestToken = tokenClient.getGuestToken();
+        return ResponseEntity.ok(guestToken);
     }
 }

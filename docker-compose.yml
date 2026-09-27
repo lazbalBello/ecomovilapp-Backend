@@ -228,6 +228,9 @@ services:
   emqx:
     image: emqx/emqx:5.4.1
     container_name: emqx
+    depends_on:
+      keycloak:
+        condition: service_healthy
     ports:
       - "1883:1883"   # MQTT Directo TCP (Hardware Flota)
       - "1884:1884"   # MQTT sobre WebSockets (Browsers)
@@ -259,7 +262,7 @@ services:
         max-file: "3"
     mem_limit: "512m"
 
-  # Contenedor de inicialización: crea los usuarios MQTT en EMQX via REST API
+# Contenedor de inicialización: crea el usuario MQTT del servicio de distribución en EMQX via REST API
   emqx-init:
     image: alpine:3.19
     container_name: emqx-init
@@ -273,15 +276,15 @@ services:
       - |
         set -e
         apk add --no-cache curl jq
-        
+
         echo "Esperando a que la API HTTP de EMQX este lista..."
         sleep 5
-        
+
         # 1. Obtener JWT Token
         LOGIN_RES=$$(curl -s -X POST http://emqx:18083/api/v5/login \
           -H "Content-Type: application/json" \
           -d "{\"username\":\"admin\",\"password\":\"$${EMQX_DASHBOARD_PASSWORD}\"}")
-        
+
         TOKEN=$$(echo $$LOGIN_RES | jq -r '.token')
         if [ "$$TOKEN" = "null" ] || [ -z "$$TOKEN" ]; then
           echo "[ERROR] No se pudo obtener el token JWT de EMQX. Respuesta: $$LOGIN_RES"
@@ -309,8 +312,6 @@ services:
 
         echo "=== Inicializando usuarios MQTT en EMQX ==="
         crear_usuario "servicio-distribucion" "${SERVICIO_DISTRIBUCION_PASSWORD}"
-        crear_usuario "web-admin"             "${WEB_ADMIN_PASSWORD}"
-        crear_usuario "web-publico"           "${WEB_PUBLICO_PASSWORD}"
         echo "=== Inicializacion completada ==="
     networks:
       - app-network

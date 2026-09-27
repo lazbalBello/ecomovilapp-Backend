@@ -53,3 +53,5 @@ Keycloak:
    user-password: ${USER_PASSWORD}
    client-id: ${CLIENT_ID}
    client-secret: ${CLIENT_SECRET}
+   guest-client-id: ${GUEST_CLIENT_ID}
+   guest-client-secret: ${GUEST_CLIENT_SECRET}
