@@ -1,6 +1,7 @@
 package com.ServiciosTransporte.Gestion.Repositorios;
 
 import com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion;
+import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -33,6 +34,16 @@ public interface IRepositorioVehiculoAsignacion extends JpaRepository<VehiculoAs
     List<VehiculoAsignacion> findByVehiculo_Id(Long vehiculoId);
 
     List<VehiculoAsignacion> findByConductor_Id(Long conductorId);
+
+        @Query("""
+                SELECT DISTINCT a.vehiculo FROM VehiculoAsignacion a
+                WHERE a.conductor.usuarioId = :usuarioId
+                    AND a.fechaEliminacion IS NULL
+                    AND a.fechaInicio <= CURRENT_DATE
+                    AND (a.indefinido = true OR a.fechaFinal IS NULL OR a.fechaFinal >= CURRENT_DATE)
+                    AND a.vehiculo.fechaEliminacion IS NULL
+        """)
+        List<Vehiculo> findVehiculosActivosByConductorUsuarioId(@Param("usuarioId") String usuarioId);
 
     @Query("""
         SELECT COUNT(a) FROM VehiculoAsignacion a

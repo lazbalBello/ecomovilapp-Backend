@@ -33,6 +33,8 @@ public class SecurityConfig {
                                 .permitAll()
                                 .requestMatchers("/public/**")
                                 .permitAll()
+                                .requestMatchers("/admin/Conductor/v1/mis-vehiculos")
+                                .hasRole("driver")
                                 .requestMatchers("/admin/**")
                                 .hasRole("admin")
                                 .requestMatchers("/user/**")

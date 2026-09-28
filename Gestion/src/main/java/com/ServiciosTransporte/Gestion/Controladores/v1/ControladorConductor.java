@@ -3,12 +3,17 @@ package com.ServiciosTransporte.Gestion.Controladores.v1;
 import com.ServiciosTransporte.Gestion.Dto.ConductorDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.ConductorLiteDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.ConductorSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.ConductorUpdateDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioConductor;
+import com.ServiciosTransporte.Gestion.Servicios.ServicioVehiculoAsignacion;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +24,16 @@ public class ControladorConductor {
 
     @Autowired
     private ServicioConductor servicioConductor;
+
+    @Autowired
+    private ServicioVehiculoAsignacion servicioVehiculoAsignacion;
+
+    @GetMapping("/mis-vehiculos")
+    @PreAuthorize("hasRole('driver')")
+    public ResponseEntity<List<VehiculoLiteDto>> listarMisVehiculos(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(
+                servicioVehiculoAsignacion.listarVehiculosActivosDelConductor(jwt.getSubject()));
+    }
 
     @PostMapping("/registrar")
     public ResponseEntity<ConductorDto> registrarConductor(@Valid @RequestBody ConductorDto conductorDto){

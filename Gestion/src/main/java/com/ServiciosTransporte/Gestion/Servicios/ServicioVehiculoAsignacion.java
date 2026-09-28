@@ -4,9 +4,11 @@ import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
 import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.VehiculoAsignacionDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.AsignacionLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.AsignacionUpdateDto;
 import com.ServiciosTransporte.Gestion.Mappers.VehiculoAsignacionMapper;
 import com.ServiciosTransporte.Gestion.MappersResponse.AsignacionLiteDtoMapper;
+import com.ServiciosTransporte.Gestion.MappersResponse.VehiculoLiteDtoMapper;
 import com.ServiciosTransporte.Gestion.Modelos.Conductor;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion;
@@ -34,6 +36,7 @@ public class ServicioVehiculoAsignacion {
     private final IRepositorioVehiculoAsignacion repositorioVehiculoAsignacion;
     private final AsignacionLiteDtoMapper asignacionLiteDtoMapper;
     private final AsignacionUpdateDtoMapper asignacionUpdateDtoMapper;
+    private final VehiculoLiteDtoMapper vehiculoLiteDtoMapper;
 
     @Transactional
     @Auditable(tabla = "vehiculo_asignacion", operacion = TipoOperacion.CREACION, entidad = VehiculoAsignacion.class)
@@ -59,6 +62,13 @@ public class ServicioVehiculoAsignacion {
         return vehiculos.stream()
                 .map(asignacionLiteDtoMapper::toAsignacionLiteDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<VehiculoLiteDto> listarVehiculosActivosDelConductor(String usuarioId) {
+        return repositorioVehiculoAsignacion.findVehiculosActivosByConductorUsuarioId(usuarioId).stream()
+                .map(vehiculoLiteDtoMapper::toVehiculoLiteDto)
+                .toList();
     }
 
     public AsignacionLiteDto buscarPorId(Long id){
