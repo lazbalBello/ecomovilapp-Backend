@@ -17,7 +17,6 @@ public class PublicoService {
 
     private final IRepositorioVehiculo repositorioVehiculo;
     private final IRepositorioRuta repositorioRuta;
-    private final IRepositorioParada repositorioParada;
     private final ServicioRuta servicioRuta;
     private final ServicioParada servicioParada;
 

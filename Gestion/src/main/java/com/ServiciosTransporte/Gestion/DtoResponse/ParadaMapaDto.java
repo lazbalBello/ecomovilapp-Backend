@@ -11,7 +11,6 @@ public class ParadaMapaDto {
 
     private Long id;
     private String nombre;
-    private String ruta;
     private double latitud;
     private double longitud;
 }

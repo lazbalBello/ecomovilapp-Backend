@@ -8,6 +8,5 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ParadaMapaDtoMapper {
 
-    @Mapping(target = "ruta", expression = "java(parada.getRuta().getNombre())")
     ParadaMapaDto toParadaMapaDto(Parada parada);
 }

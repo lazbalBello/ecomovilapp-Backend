@@ -16,6 +16,4 @@ public class RutaMapaDto {
     private String nombre;
     private String descripcion;
     private List<RecorridoRuta> recorrido;
-    private List<ParadaLiteDto> paradas;
-    private List<String> vehiculosAsignados;
 }
