@@ -33,6 +33,15 @@ public class RegistroConductorConsumer {
         conductor.setApellidos(String.valueOf(evento.getApellido()));
         conductor.setCategoriasLicencia(evento.getCategoriasLicencia().stream().map(CharSequence::toString).toList());
         try {
+            if (evento.getAdminId() != null && !evento.getAdminId().toString().trim().isEmpty()) {
+                org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =
+                        new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                                evento.getAdminId().toString().trim(),
+                                null,
+                                java.util.Collections.emptyList()
+                        );
+                org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
             servicioConductor.registrarConductor(conductor);
         }catch (Exception e){
             RegistroConductorFallido eventoFallido = RegistroConductorFallido.newBuilder()
@@ -41,6 +50,8 @@ public class RegistroConductorConsumer {
                     .setTimestamp(System.currentTimeMillis())
                     .build();
            kafkaTemplate.send("registro-conductor-fallido",String.valueOf(eventoFallido.getKeycloakId()), eventoFallido);
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
         }
     }
 

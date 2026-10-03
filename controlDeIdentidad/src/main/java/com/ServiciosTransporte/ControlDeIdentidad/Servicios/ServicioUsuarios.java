@@ -182,12 +182,23 @@ public class ServicioUsuarios implements IKeycloakService {
                         .realmLevel()
                         .add(roles);
 
+                String adminId = null;
+                try {
+                    org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                    if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                        adminId = auth.getName();
+                    }
+                } catch (Exception e) {
+                    log.warn("No se pudo obtener el adminId de la autenticación: {}", e.getMessage());
+                }
+
                 RegistroConductorIniciado evento = RegistroConductorIniciado.newBuilder()
                         .setKeycloakId(userId)
                         .setNombre(userDto.getNombre())
                         .setApellido(userDto.getApellidos())
                         .setDni(userDto.getDni())
                         .setCategoriasLicencia(new ArrayList<>(userDto.getCategoriasLicencia()))
+                        .setAdminId(adminId)
                         .build();
                 kafkaTemplate.send(TOPIC_INIT,userId,evento);
             } else if (response.getStatus() == 409) {

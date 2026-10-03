@@ -14,10 +14,10 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class RegistroConductorIniciado extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 7229552082770943986L;
+  private static final long serialVersionUID = 1062093216806937437L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"RegistroConductorIniciado\",\"namespace\":\"com.servicioTransporte.flota.eventos.conductor.registro\",\"fields\":[{\"name\":\"keycloakId\",\"type\":\"string\"},{\"name\":\"nombre\",\"type\":\"string\"},{\"name\":\"apellido\",\"type\":\"string\"},{\"name\":\"dni\",\"type\":\"string\"},{\"name\":\"categoriasLicencia\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"RegistroConductorIniciado\",\"namespace\":\"com.servicioTransporte.flota.eventos.conductor.registro\",\"fields\":[{\"name\":\"keycloakId\",\"type\":\"string\"},{\"name\":\"nombre\",\"type\":\"string\"},{\"name\":\"apellido\",\"type\":\"string\"},{\"name\":\"dni\",\"type\":\"string\"},{\"name\":\"categoriasLicencia\",\"type\":{\"type\":\"array\",\"items\":\"string\"}},{\"name\":\"adminId\",\"type\":[\"null\",\"string\"],\"default\":null}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -78,6 +78,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
   private java.lang.CharSequence apellido;
   private java.lang.CharSequence dni;
   private java.util.List<java.lang.CharSequence> categoriasLicencia;
+  private java.lang.CharSequence adminId;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -93,13 +94,15 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
    * @param apellido The new value for apellido
    * @param dni The new value for dni
    * @param categoriasLicencia The new value for categoriasLicencia
+   * @param adminId The new value for adminId
    */
-  public RegistroConductorIniciado(java.lang.CharSequence keycloakId, java.lang.CharSequence nombre, java.lang.CharSequence apellido, java.lang.CharSequence dni, java.util.List<java.lang.CharSequence> categoriasLicencia) {
+  public RegistroConductorIniciado(java.lang.CharSequence keycloakId, java.lang.CharSequence nombre, java.lang.CharSequence apellido, java.lang.CharSequence dni, java.util.List<java.lang.CharSequence> categoriasLicencia, java.lang.CharSequence adminId) {
     this.keycloakId = keycloakId;
     this.nombre = nombre;
     this.apellido = apellido;
     this.dni = dni;
     this.categoriasLicencia = categoriasLicencia;
+    this.adminId = adminId;
   }
 
   @Override
@@ -117,6 +120,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
     case 2: return apellido;
     case 3: return dni;
     case 4: return categoriasLicencia;
+    case 5: return adminId;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -131,6 +135,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
     case 2: apellido = (java.lang.CharSequence)value$; break;
     case 3: dni = (java.lang.CharSequence)value$; break;
     case 4: categoriasLicencia = (java.util.List<java.lang.CharSequence>)value$; break;
+    case 5: adminId = (java.lang.CharSequence)value$; break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -221,6 +226,23 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
   }
 
   /**
+   * Gets the value of the 'adminId' field.
+   * @return The value of the 'adminId' field.
+   */
+  public java.lang.CharSequence getAdminId() {
+    return adminId;
+  }
+
+
+  /**
+   * Sets the value of the 'adminId' field.
+   * @param value the value to set.
+   */
+  public void setAdminId(java.lang.CharSequence value) {
+    this.adminId = value;
+  }
+
+  /**
    * Creates a new RegistroConductorIniciado RecordBuilder.
    * @return A new RegistroConductorIniciado RecordBuilder
    */
@@ -266,6 +288,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
     private java.lang.CharSequence apellido;
     private java.lang.CharSequence dni;
     private java.util.List<java.lang.CharSequence> categoriasLicencia;
+    private java.lang.CharSequence adminId;
 
     /** Creates a new Builder */
     private Builder() {
@@ -298,6 +321,10 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
         this.categoriasLicencia = data().deepCopy(fields()[4].schema(), other.categoriasLicencia);
         fieldSetFlags()[4] = other.fieldSetFlags()[4];
       }
+      if (isValidValue(fields()[5], other.adminId)) {
+        this.adminId = data().deepCopy(fields()[5].schema(), other.adminId);
+        fieldSetFlags()[5] = other.fieldSetFlags()[5];
+      }
     }
 
     /**
@@ -325,6 +352,10 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       if (isValidValue(fields()[4], other.categoriasLicencia)) {
         this.categoriasLicencia = data().deepCopy(fields()[4].schema(), other.categoriasLicencia);
         fieldSetFlags()[4] = true;
+      }
+      if (isValidValue(fields()[5], other.adminId)) {
+        this.adminId = data().deepCopy(fields()[5].schema(), other.adminId);
+        fieldSetFlags()[5] = true;
       }
     }
 
@@ -528,6 +559,46 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
       return this;
     }
 
+    /**
+      * Gets the value of the 'adminId' field.
+      * @return The value.
+      */
+    public java.lang.CharSequence getAdminId() {
+      return adminId;
+    }
+
+
+    /**
+      * Sets the value of the 'adminId' field.
+      * @param value The value of 'adminId'.
+      * @return This builder.
+      */
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder setAdminId(java.lang.CharSequence value) {
+      validate(fields()[5], value);
+      this.adminId = value;
+      fieldSetFlags()[5] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'adminId' field has been set.
+      * @return True if the 'adminId' field has been set, false otherwise.
+      */
+    public boolean hasAdminId() {
+      return fieldSetFlags()[5];
+    }
+
+
+    /**
+      * Clears the value of the 'adminId' field.
+      * @return This builder.
+      */
+    public com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado.Builder clearAdminId() {
+      adminId = null;
+      fieldSetFlags()[5] = false;
+      return this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public RegistroConductorIniciado build() {
@@ -538,6 +609,7 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
         record.apellido = fieldSetFlags()[2] ? this.apellido : (java.lang.CharSequence) defaultValue(fields()[2]);
         record.dni = fieldSetFlags()[3] ? this.dni : (java.lang.CharSequence) defaultValue(fields()[3]);
         record.categoriasLicencia = fieldSetFlags()[4] ? this.categoriasLicencia : (java.util.List<java.lang.CharSequence>) defaultValue(fields()[4]);
+        record.adminId = fieldSetFlags()[5] ? this.adminId : (java.lang.CharSequence) defaultValue(fields()[5]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
@@ -591,6 +663,14 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
     if (actualSize0 != size0)
       throw new java.util.ConcurrentModificationException("Array-size written was " + size0 + ", but element count was " + actualSize0 + ".");
 
+    if (this.adminId == null) {
+      out.writeIndex(0);
+      out.writeNull();
+    } else {
+      out.writeIndex(1);
+      out.writeString(this.adminId);
+    }
+
   }
 
   @Override public void customDecode(org.apache.avro.io.ResolvingDecoder in)
@@ -621,8 +701,15 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
         }
       }
 
+      if (in.readIndex() != 1) {
+        in.readNull();
+        this.adminId = null;
+      } else {
+        this.adminId = in.readString(this.adminId instanceof Utf8 ? (Utf8)this.adminId : null);
+      }
+
     } else {
-      for (int i = 0; i < 5; i++) {
+      for (int i = 0; i < 6; i++) {
         switch (fieldOrder[i].pos()) {
         case 0:
           this.keycloakId = in.readString(this.keycloakId instanceof Utf8 ? (Utf8)this.keycloakId : null);
@@ -654,6 +741,15 @@ public class RegistroConductorIniciado extends org.apache.avro.specific.Specific
               e0 = in.readString(e0 instanceof Utf8 ? (Utf8)e0 : null);
               a0.add(e0);
             }
+          }
+          break;
+
+        case 5:
+          if (in.readIndex() != 1) {
+            in.readNull();
+            this.adminId = null;
+          } else {
+            this.adminId = in.readString(this.adminId instanceof Utf8 ? (Utf8)this.adminId : null);
           }
           break;
 
