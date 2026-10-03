@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -47,6 +48,7 @@ public class SrevicioVehiculo {
 
     @Transactional
     @Auditable(tabla = "vehiculo", operacion = TipoOperacion.CREACION, entidad = Vehiculo.class)
+    @CacheEvict(value = "gestion:resumen-activos", allEntries = true)
     public VehiculoDto registrarVehiculo(VehiculoDto vehiculoDto){
         Vehiculo vehiculo = vehiculoMapper.toVehiculo(vehiculoDto);
         Vehiculo vehiculoGuardado = repositorioVehiculo.save(vehiculo);
@@ -104,6 +106,7 @@ public class SrevicioVehiculo {
 
     @Transactional
     @Auditable(tabla = "vehiculo", operacion = TipoOperacion.MODIFICACION, entidad = Vehiculo.class)
+    @CacheEvict(value = "gestion:resumen-activos", allEntries = true)
     public VehiculoLiteDto actualizarVehiculo(Long id, VehiculoUpdateDto updateDto){
         Vehiculo vehiculo = repositorioVehiculo.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró el vehiculo con el id " + id));
@@ -183,6 +186,7 @@ public class SrevicioVehiculo {
 
     @Transactional
     @Auditable(tabla = "vehiculo", operacion = TipoOperacion.SOFT_DELETE, entidad = Vehiculo.class)
+    @CacheEvict(value = "gestion:resumen-activos", allEntries = true)
     public void softDeleteVehiculo(Long id){
         Vehiculo vehiculo = repositorioVehiculo.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Vehiculo no encontrado con Id " + id));

@@ -49,6 +49,15 @@ spring:
     jackson:
         serialization:
             write-dates-as-timestamps: false
+    cache:
+      type: redis
+    data:
+      redis:
+        host: ${REDIS_HOST:localhost}
+        port: ${REDIS_PORT:6379}
+        password: ${REDIS_PASSWORD:Blb2401}
+        database: 2
+        timeout: 2000ms
     security:
         oauth2:
             resourceserver:

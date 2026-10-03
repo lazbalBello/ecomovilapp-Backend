@@ -11,6 +11,7 @@ API REST que actúa como servidor de recursos para operaciones CRUD sobre vehíc
 - Contratos: usar las clases generadas por `eventos-flota` para publicar/consumir mensajes en Kafka.
 - Manejo de errores: centralizado mediante `GlobalExceptionHandler`.
 - Módulo de Auditoría Centralizada: implementado con Spring AOP (`@Auditable`), capturando snapshots (`datosAnteriores`, `datosNuevos`) en columnas `JSONB` de PostgreSQL en la tabla `auditoria_log`, ejecutado de manera aislada con `@Transactional(propagation = Propagation.REQUIRES_NEW)`. Se consulta mediante `ControladorAuditoria` en `/admin/Auditoria/v1`.
+- Estrategia de Caché Distribuida con Redis: configurada en base de datos lógica dedicada (`database: 2`), con serializador JSON polimórfico (`GenericJackson2JsonRedisSerializer`), resiliencia ante caídas (`CacheErrorHandler`) y desalojo granular (`@CacheEvict` / `@Caching`) en eventos CUD de rutas, paradas y vehículos para los endpoints públicos (`gestion:rutas`, `gestion:paradas`, `gestion:resumen-activos`).
 
 ## Dependencias Principales
 

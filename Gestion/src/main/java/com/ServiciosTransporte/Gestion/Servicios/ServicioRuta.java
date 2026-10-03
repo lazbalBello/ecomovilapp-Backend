@@ -19,6 +19,8 @@ import com.ServiciosTransporte.Gestion.MappersUpdate.RutaUpdateMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -42,6 +44,10 @@ public class ServicioRuta {
 
     @Transactional
     @Auditable(tabla = "ruta", operacion = TipoOperacion.CREACION, entidad = Ruta.class)
+    @Caching(evict = {
+            @CacheEvict(value = "gestion:rutas", allEntries = true),
+            @CacheEvict(value = "gestion:resumen-activos", allEntries = true)
+    })
     public RutaDto registrarRuta(RutaDto rutaDto){
         Ruta ruta = rutaMapper.toRuta(rutaDto);
         Ruta rutaGuardada = repositorioRuta.save(ruta);
@@ -78,6 +84,7 @@ public class ServicioRuta {
 
     @Transactional
     @Auditable(tabla = "ruta", operacion = TipoOperacion.MODIFICACION, entidad = Ruta.class)
+    @CacheEvict(value = "gestion:rutas", allEntries = true)
     public RutaLiteDto actualizarRuta(Long id, RutaUpdateDto updateDto){
         Ruta ruta = repositorioRuta.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró la ruta con el id " + id));
@@ -96,6 +103,11 @@ public class ServicioRuta {
 
     @Transactional
     @Auditable(tabla = "ruta", operacion = TipoOperacion.SOFT_DELETE, entidad = Ruta.class)
+    @Caching(evict = {
+            @CacheEvict(value = "gestion:rutas", allEntries = true),
+            @CacheEvict(value = "gestion:paradas", allEntries = true),
+            @CacheEvict(value = "gestion:resumen-activos", allEntries = true)
+    })
     public void softDelete(Long id){
         Ruta ruta = repositorioRuta.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Ruta no encontrada con id " + id));

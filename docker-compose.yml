@@ -461,6 +461,8 @@ services:
         condition: service_healthy
       schema-registry:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       - EUREKA_URI=${EUREKA_URI}
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=${EUREKA_INSTANCE_PREFER_IP_ADDRESS}
@@ -471,6 +473,9 @@ services:
       - SCHEMA_REGISTRY_URL=${SCHEMA_REGISTRY_URL}
       - ISSUER=${ISSUER}
       - JWK_URL=${JWK_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     env_file:
       - .env
     networks:

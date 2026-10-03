@@ -9,6 +9,7 @@ import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculo;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,6 +21,7 @@ public class ServicioAsignarRuta {
     private final VehiculoLiteDtoMapper vehiculoLiteDtoMapper;
 
     @Transactional
+    @CacheEvict(value = "gestion:resumen-activos", allEntries = true)
     public VehiculoLiteDto asignarRutaAVehiculo(Long rutaId , Long vehiculoId){
         Ruta ruta = repositorioRuta.findById(rutaId)
                 .orElseThrow(()-> new EntityNotFoundException("Ruta no encontrada"));
