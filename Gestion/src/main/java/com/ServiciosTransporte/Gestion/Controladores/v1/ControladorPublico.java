@@ -3,6 +3,7 @@ package com.ServiciosTransporte.Gestion.Controladores.v1;
 import com.ServiciosTransporte.Gestion.DtoResponse.PublicoEstadisticasDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.ParadaMapaDto;
 import com.ServiciosTransporte.Gestion.DtoResponse.RutaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoPublicoDto;
 import com.ServiciosTransporte.Gestion.Servicios.PublicoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,11 @@ public class ControladorPublico {
 
     public ControladorPublico(PublicoService publicoService) {
         this.publicoService = publicoService;
+    }
+
+    @GetMapping("/vehiculos")
+    public ResponseEntity<List<VehiculoPublicoDto>> obtenerVehiculosPublicos(){
+        return  ResponseEntity.ok(publicoService.listarVehiculosPublico());
     }
 
     @GetMapping("/estadisticas/vehiculos-activos")

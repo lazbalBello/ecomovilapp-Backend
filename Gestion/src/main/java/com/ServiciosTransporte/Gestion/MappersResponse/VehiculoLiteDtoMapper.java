@@ -1,6 +1,7 @@
 package com.ServiciosTransporte.Gestion.MappersResponse;
 
 import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoPublicoDto;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import org.mapstruct.Mapper;
 
@@ -8,4 +9,6 @@ import org.mapstruct.Mapper;
 public interface VehiculoLiteDtoMapper {
 
     VehiculoLiteDto toVehiculoLiteDto(Vehiculo vehiculo);
+
+    VehiculoPublicoDto toVehiculoPublicoDto(Vehiculo vehiculo);
 }
