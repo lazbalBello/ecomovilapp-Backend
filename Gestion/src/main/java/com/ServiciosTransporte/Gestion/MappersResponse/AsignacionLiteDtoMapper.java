@@ -1,6 +1,6 @@
 package com.ServiciosTransporte.Gestion.MappersResponse;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.AsignacionLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Asignaciones.AsignacionLiteDto;
 import com.ServiciosTransporte.Gestion.Modelos.Conductor;
 import com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion;
 import org.mapstruct.Mapper;

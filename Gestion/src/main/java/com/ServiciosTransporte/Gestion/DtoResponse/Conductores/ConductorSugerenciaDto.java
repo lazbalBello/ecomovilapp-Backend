@@ -1,4 +1,4 @@
-package com.ServiciosTransporte.Gestion.DtoResponse;
+package com.ServiciosTransporte.Gestion.DtoResponse.Conductores;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

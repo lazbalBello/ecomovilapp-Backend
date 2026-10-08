@@ -1,6 +1,6 @@
 package com.ServiciosTransporte.Gestion.MappersResponse;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.ConductorLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Conductores.ConductorLiteDto;
 import com.ServiciosTransporte.Gestion.Modelos.Conductor;
 import org.mapstruct.Mapper;
 

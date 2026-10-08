@@ -1,6 +1,6 @@
 package com.ServiciosTransporte.Gestion.MappersResponse;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.ParadaLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaLiteDto;
 import com.ServiciosTransporte.Gestion.Modelos.Parada;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -3,7 +3,7 @@ package com.ServiciosTransporte.Gestion.Servicios;
 import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
 import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.VehiculoDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.VehiculoUpdateDto;
 import com.ServiciosTransporte.Gestion.Mappers.VehiculoMapper;
 import com.ServiciosTransporte.Gestion.MappersResponse.VehiculoLiteDtoMapper;

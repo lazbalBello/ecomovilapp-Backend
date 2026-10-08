@@ -1,6 +1,6 @@
 package com.ServiciosTransporte.Gestion.MappersResponse;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.RutaLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaLiteDto;
 import com.ServiciosTransporte.Gestion.Modelos.Ruta;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import org.mapstruct.Mapper;

@@ -1,9 +1,8 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
 import com.ServiciosTransporte.Gestion.Dto.ParadaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.ParadaLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.ParadaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.ParadaSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaSugerenciaDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.ParadaUpdateDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioParada;
 import jakarta.validation.Valid;

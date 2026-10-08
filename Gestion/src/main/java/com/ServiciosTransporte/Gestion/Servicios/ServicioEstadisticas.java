@@ -1,10 +1,10 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.EstadisticasAsignacionesDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.EstadisticasConductoresDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.EstadisticasResumenDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.EstadisticasRutasDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.EstadisticasVehiculosDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasAsignacionesDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasConductoresDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasResumenDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasRutasDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasVehiculosDto;
 import com.ServiciosTransporte.Gestion.Modelos.EstadoVehiculo;
 import com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioConductor;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class EstadisticasService {
+public class ServicioEstadisticas {
 
     private final IRepositorioVehiculo repositorioVehiculo;
     private final IRepositorioRuta repositorioRuta;
@@ -57,10 +57,9 @@ public class EstadisticasService {
 
         return new EstadisticasResumenDto(
                 repositorioVehiculo.count(),
-                repositorioVehiculo.countVehiculosActivos(),
+                repositorioVehiculo.countByEstado(EstadoVehiculo.ACTIVO),
                 repositorioVehiculo.countByEstado(EstadoVehiculo.INACTIVO),
                 repositorioVehiculo.countByEstado(EstadoVehiculo.MANTENIMIENTO),
-                repositorioVehiculo.countByEstado(EstadoVehiculo.CARGANDO),
                 repositorioVehiculo.countByEstado(EstadoVehiculo.FUERA_DE_SERVICIO),
                 repositorioVehiculo.countByFechaCreacionAfter(hace7Dias),
                 vehiculosPorEstado,
@@ -131,10 +130,9 @@ public class EstadisticasService {
 
         return new EstadisticasVehiculosDto(
                 repositorioVehiculo.count(),
-                repositorioVehiculo.countVehiculosActivos(),
+                repositorioVehiculo.countByEstado(EstadoVehiculo.ACTIVO),
                 repositorioVehiculo.countByEstado(EstadoVehiculo.INACTIVO),
                 repositorioVehiculo.countByEstado(EstadoVehiculo.MANTENIMIENTO),
-                repositorioVehiculo.countByEstado(EstadoVehiculo.CARGANDO),
                 repositorioVehiculo.countByEstado(EstadoVehiculo.FUERA_DE_SERVICIO),
                 repositorioVehiculo.countByFechaCreacionAfter(hace7Dias),
                 porEstado,

@@ -42,9 +42,6 @@ public interface IRepositorioVehiculo extends JpaRepository<Vehiculo, Long> {
 
     long countByGpsIdIsNotNull();
 
-    @Query("SELECT COUNT(v) FROM Vehiculo v WHERE v.estado = com.ServiciosTransporte.Gestion.Modelos.EstadoVehiculo.ACTIVO AND v.fechaEliminacion IS NULL")
-    long countVehiculosActivos();
-
     @Query("SELECT COUNT(v) FROM Vehiculo v WHERE v.estado = com.ServiciosTransporte.Gestion.Modelos.EstadoVehiculo.ACTIVO AND v.ruta IS NOT NULL AND v.fechaEliminacion IS NULL")
     long countVehiculosActivosConRuta();
 }

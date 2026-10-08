@@ -1,7 +1,7 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
 import com.ServiciosTransporte.Gestion.Dto.VehiculoDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.VehiculoUpdateDto;
 import com.ServiciosTransporte.Gestion.Servicios.SrevicioVehiculo;
 import jakarta.validation.Valid;

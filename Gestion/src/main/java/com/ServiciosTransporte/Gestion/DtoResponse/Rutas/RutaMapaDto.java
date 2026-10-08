@@ -1,4 +1,4 @@
-package com.ServiciosTransporte.Gestion.DtoResponse;
+package com.ServiciosTransporte.Gestion.DtoResponse.Rutas;
 
 import com.ServiciosTransporte.Gestion.Modelos.RecorridoRuta;
 import lombok.AllArgsConstructor;

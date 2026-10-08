@@ -1,7 +1,7 @@
 package com.ServiciosTransporte.Gestion.MappersResponse;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoPublicoDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoPublicoDto;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import org.mapstruct.Mapper;
 

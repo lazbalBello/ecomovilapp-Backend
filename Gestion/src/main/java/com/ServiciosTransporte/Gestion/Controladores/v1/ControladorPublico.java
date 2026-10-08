@@ -1,10 +1,11 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.PublicoEstadisticasDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.ParadaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.RutaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoPublicoDto;
-import com.ServiciosTransporte.Gestion.Servicios.PublicoService;
+import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.PublicoEstadisticasDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoPublicoDto;
+import com.ServiciosTransporte.Gestion.Servicios.ServicioEstadisticasPublicas;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,39 +17,36 @@ import java.util.List;
 @RequestMapping("/public/v1")
 public class ControladorPublico {
 
-    private final PublicoService publicoService;
+   @Autowired
+   ServicioEstadisticasPublicas servicioEstadisticasPublicas;
 
-    public ControladorPublico(PublicoService publicoService) {
-        this.publicoService = publicoService;
-    }
-
-    @GetMapping("/vehiculos")
+    @GetMapping("/vehiculo/listartodo")
     public ResponseEntity<List<VehiculoPublicoDto>> obtenerVehiculosPublicos(){
-        return  ResponseEntity.ok(publicoService.listarVehiculosPublico());
+        return  ResponseEntity.ok(servicioEstadisticasPublicas.listarVehiculosPublico());
     }
 
     @GetMapping("/estadisticas/vehiculos-activos")
     public ResponseEntity<Long> obtenerVehiculosActivos() {
-        return ResponseEntity.ok(publicoService.obtenerEstadisticasPublicas().getVehiculosActivos());
+        return ResponseEntity.ok(servicioEstadisticasPublicas.obtenerEstadisticasPublicas().getVehiculosActivos());
     }
 
     @GetMapping("/estadisticas/rutas-activas")
     public ResponseEntity<Long> obtenerRutasActivas() {
-        return ResponseEntity.ok(publicoService.obtenerEstadisticasPublicas().getRutasActivas());
+        return ResponseEntity.ok(servicioEstadisticasPublicas.obtenerEstadisticasPublicas().getRutasActivas());
     }
 
     @GetMapping("/estadisticas")
     public ResponseEntity<PublicoEstadisticasDto> obtenerEstadisticasPublicas() {
-        return ResponseEntity.ok(publicoService.obtenerEstadisticasPublicas());
+        return ResponseEntity.ok(servicioEstadisticasPublicas.obtenerEstadisticasPublicas());
     }
 
     @GetMapping("/rutas/mapa")
     public ResponseEntity<List<RutaMapaDto>> listarRutasParaMapa() {
-        return ResponseEntity.ok(publicoService.listarRutasParaMapa());
+        return ResponseEntity.ok(servicioEstadisticasPublicas.listarRutasParaMapa());
     }
 
     @GetMapping("/paradas/mapa")
     public ResponseEntity<List<ParadaMapaDto>> listarParadasParaMapa() {
-        return ResponseEntity.ok(publicoService.listarParadasParaMapa());
+        return ResponseEntity.ok(servicioEstadisticasPublicas.listarParadasParaMapa());
     }
 }

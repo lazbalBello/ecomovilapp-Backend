@@ -1,6 +1,6 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.Mappers.VehiculoAsignacionMapper;
 import com.ServiciosTransporte.Gestion.MappersResponse.AsignacionLiteDtoMapper;
 import com.ServiciosTransporte.Gestion.MappersResponse.VehiculoLiteDtoMapper;

@@ -1,9 +1,9 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
 import com.ServiciosTransporte.Gestion.Dto.ConductorDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.ConductorLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.ConductorSugerenciaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Conductores.ConductorLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Conductores.ConductorSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.ConductorUpdateDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioConductor;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioVehiculoAsignacion;

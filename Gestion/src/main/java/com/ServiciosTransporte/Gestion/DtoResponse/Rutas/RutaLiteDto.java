@@ -1,5 +1,6 @@
-package com.ServiciosTransporte.Gestion.DtoResponse;
+package com.ServiciosTransporte.Gestion.DtoResponse.Rutas;
 
+import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaLiteDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

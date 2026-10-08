@@ -1,4 +1,4 @@
-package com.ServiciosTransporte.Gestion.DtoResponse;
+package com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos;
 
 public record VehiculoPublicoDto(
         Long id,

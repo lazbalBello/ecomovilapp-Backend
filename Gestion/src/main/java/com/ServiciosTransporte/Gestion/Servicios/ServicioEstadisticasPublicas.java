@@ -1,6 +1,10 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.*;
+import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.PublicoEstadisticasDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoPublicoDto;
+import com.ServiciosTransporte.Gestion.Modelos.EstadoVehiculo;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioRuta;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculo;
@@ -13,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PublicoService {
+public class ServicioEstadisticasPublicas {
 
     private final IRepositorioVehiculo repositorioVehiculo;
     private final IRepositorioRuta repositorioRuta;
@@ -32,7 +36,7 @@ public class PublicoService {
     @Cacheable(value = "gestion:resumen-activos", key = "'resumen'")
     public PublicoEstadisticasDto obtenerEstadisticasPublicas() {
         return new PublicoEstadisticasDto(
-                repositorioVehiculo.countVehiculosActivos(),
+                repositorioVehiculo.countByEstado(EstadoVehiculo.ACTIVO),
                 repositorioRuta.countRutasActivasConVehiculosActivos()
         );
     }

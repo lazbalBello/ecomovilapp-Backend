@@ -1,5 +1,6 @@
-package com.ServiciosTransporte.Gestion.DtoResponse;
+package com.ServiciosTransporte.Gestion.DtoResponse.Conductores;
 
+import com.ServiciosTransporte.Gestion.DtoResponse.Asignaciones.AsignacionLiteDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

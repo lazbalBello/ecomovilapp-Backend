@@ -1,10 +1,9 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
 import com.ServiciosTransporte.Gestion.Dto.RutaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.RutaLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.RutaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.RutaSugerenciaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaLiteDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.DtoUpdate.RutaUpdateDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioAsignarRuta;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioRuta;

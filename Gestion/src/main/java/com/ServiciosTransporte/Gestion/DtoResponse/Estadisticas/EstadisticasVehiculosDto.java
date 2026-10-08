@@ -1,4 +1,4 @@
-package com.ServiciosTransporte.Gestion.DtoResponse;
+package com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,8 +15,7 @@ public class EstadisticasVehiculosDto {
     private Long total;
     private Long activos;
     private Long inactivos;
-    private Long enMantenimiento;
-    private Long cargando;
+    private Long enMantenimiento;;
     private Long fueraDeServicio;
     private Long ultimos7Dias;
     private Map<String, Long> porEstado;
