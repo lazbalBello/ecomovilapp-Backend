@@ -48,7 +48,7 @@ class AuditoriaAspectTest {
 
     @BeforeEach
     void setUp() {
-        auditoriaObjectMapper = new ObjectMapper();
+        auditoriaObjectMapper = new com.ServiciosTransporte.Gestion.Auditoria.Config.AuditoriaConfig().auditoriaObjectMapper();
         auditoriaAspect = new AuditoriaAspect(auditoriaService, auditoriaObjectMapper);
         ReflectionTestUtils.setField(auditoriaAspect, "entityManager", entityManager);
     }
@@ -111,5 +111,63 @@ class AuditoriaAspectTest {
         assertThrows(ResponseStatusException.class, () -> auditoriaAspect.auditarOperacion(joinPoint, auditable));
 
         verify(auditoriaService, never()).registrarCambio(any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void auditarOperacion_modificacionVehiculo_excluyeCampoAsignacionesDeAuditoria() throws Throwable {
+        Method method = this.getClass().getMethod("dummyModificar", Long.class, String.class);
+        when(joinPoint.getSignature()).thenReturn(methodSignature);
+        when(methodSignature.getMethod()).thenReturn(method);
+        when(joinPoint.getArgs()).thenReturn(new Object[]{10L, "Nuevo"});
+
+        when(auditable.idSpel()).thenReturn("");
+        doReturn(Vehiculo.class).when(auditable).entidad();
+        when(auditable.operacion()).thenReturn(TipoOperacion.MODIFICACION);
+        when(auditable.tabla()).thenReturn("vehiculo");
+
+        com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion asignacion = new com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion();
+        asignacion.setId(100L);
+
+        Vehiculo previo = new Vehiculo();
+        previo.setId(10L);
+        previo.setMatricula("OLD-123");
+        previo.setAsignaciones(java.util.List.of(asignacion));
+
+        Vehiculo nuevo = new Vehiculo();
+        nuevo.setId(10L);
+        nuevo.setMatricula("NEW-456");
+        nuevo.setAsignaciones(java.util.List.of(asignacion));
+
+        when(entityManager.find(Vehiculo.class, 10L)).thenReturn(previo, nuevo);
+        when(joinPoint.proceed()).thenReturn(nuevo);
+
+        auditoriaAspect.auditarOperacion(joinPoint, auditable);
+
+        org.mockito.ArgumentCaptor<com.fasterxml.jackson.databind.JsonNode> prevCaptor =
+                org.mockito.ArgumentCaptor.forClass(com.fasterxml.jackson.databind.JsonNode.class);
+        org.mockito.ArgumentCaptor<com.fasterxml.jackson.databind.JsonNode> newCaptor =
+                org.mockito.ArgumentCaptor.forClass(com.fasterxml.jackson.databind.JsonNode.class);
+
+        verify(auditoriaService).registrarCambio(
+                eq("vehiculo"),
+                eq(10L),
+                eq(TipoOperacion.MODIFICACION),
+                prevCaptor.capture(),
+                newCaptor.capture(),
+                anyString(),
+                any()
+        );
+
+        com.fasterxml.jackson.databind.JsonNode datosPrevios = prevCaptor.getValue();
+        com.fasterxml.jackson.databind.JsonNode datosPosteriores = newCaptor.getValue();
+
+        org.junit.jupiter.api.Assertions.assertNotNull(datosPrevios);
+        org.junit.jupiter.api.Assertions.assertNotNull(datosPosteriores);
+        org.junit.jupiter.api.Assertions.assertFalse(datosPrevios.has("asignaciones"),
+                "Los datos anteriores no deben incluir 'asignaciones'");
+        org.junit.jupiter.api.Assertions.assertFalse(datosPosteriores.has("asignaciones"),
+                "Los datos nuevos no deben incluir 'asignaciones'");
+        org.junit.jupiter.api.Assertions.assertEquals("OLD-123", datosPrevios.get("matricula").asText());
+        org.junit.jupiter.api.Assertions.assertEquals("NEW-456", datosPosteriores.get("matricula").asText());
     }
 }

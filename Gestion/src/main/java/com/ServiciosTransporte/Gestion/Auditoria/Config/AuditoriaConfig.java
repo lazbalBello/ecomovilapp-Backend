@@ -28,10 +28,25 @@ public class AuditoriaConfig {
         mapper.registerModule(hibernateModule);
         mapper.registerModule(new JavaTimeModule());
 
+        // MixIns para excluir colecciones de relaciones secundarias que poseen su propio flujo de auditoría
+        // y evitar diferencias en los diffs entre datos previos y nuevos sin tocar los modelos.
+        mapper.addMixIn(com.ServiciosTransporte.Gestion.Modelos.Vehiculo.class, VehiculoAuditoriaMixIn.class);
+        mapper.addMixIn(com.ServiciosTransporte.Gestion.Modelos.Conductor.class, ConductorAuditoriaMixIn.class);
+
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         return mapper;
+    }
+
+    private abstract static class VehiculoAuditoriaMixIn {
+        @com.fasterxml.jackson.annotation.JsonIgnore
+        private java.util.List<com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion> asignaciones;
+    }
+
+    private abstract static class ConductorAuditoriaMixIn {
+        @com.fasterxml.jackson.annotation.JsonIgnore
+        private java.util.List<com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion> historialAsignaciones;
     }
 }
