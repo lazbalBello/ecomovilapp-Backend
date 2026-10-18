@@ -3,7 +3,7 @@ package com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Tcp;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.DecoderFactory;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.ProtocolDecoder;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.ProtocolFrameDecoder;
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Services.TelemetryIngestionService;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.TelemetryIngestionService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;

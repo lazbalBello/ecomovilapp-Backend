@@ -1,9 +1,9 @@
 package com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Tcp;
 
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.DecoderFactory;
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.Decoders.Iris8xxProtocolDecoder;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.Decoders.Iris807Decoder;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.Decoders.Jt808Decoder;
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Services.TelemetryIngestionService;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.TelemetryIngestionService;
 import com.servicioTransporte.flota.eventos.vehiculo.seguimiento.TelemetriaVehiculo;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -28,7 +28,7 @@ class ProtocolDemultiplexerHandlerTest {
 
     @BeforeEach
     void setUp() {
-        Iris8xxProtocolDecoder irisDecoder = new Iris8xxProtocolDecoder();
+        Iris807Decoder irisDecoder = new Iris807Decoder();
         Jt808Decoder jt808Decoder = new Jt808Decoder();
         decoderFactory = new DecoderFactory(List.of(irisDecoder, jt808Decoder));
 

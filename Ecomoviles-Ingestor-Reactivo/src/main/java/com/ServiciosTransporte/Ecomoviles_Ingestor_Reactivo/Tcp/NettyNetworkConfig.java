@@ -1,7 +1,7 @@
 package com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Tcp;
 
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.DecoderFactory;
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Services.TelemetryIngestionService;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.TelemetryIngestionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

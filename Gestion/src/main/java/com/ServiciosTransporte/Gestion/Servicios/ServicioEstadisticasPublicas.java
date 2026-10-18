@@ -1,9 +1,9 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.PublicoEstadisticasDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoPublicoDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.PublicoEstadisticasDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Paradas.ParadaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Rutas.RutaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Vehiculos.VehiculoPublicoDto;
 import com.ServiciosTransporte.Gestion.Modelos.EstadoVehiculo;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioRuta;
@@ -11,7 +11,7 @@ import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import com.ServiciosTransporte.Gestion.MappersResponse.VehiculoLiteDtoMapper;
+import com.ServiciosTransporte.Gestion.Mappers.VehiculoMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,13 +23,13 @@ public class ServicioEstadisticasPublicas {
     private final IRepositorioRuta repositorioRuta;
     private final ServicioRuta servicioRuta;
     private final ServicioParada servicioParada;
-    private final VehiculoLiteDtoMapper vehiculoLiteDtoMapper;
+    private final VehiculoMapper vehiculoMapper;
 
     @Cacheable(value = "gestion:vehiculos", key = "'todos'")
     public List<VehiculoPublicoDto> listarVehiculosPublico(){
         List<Vehiculo> vehiculos = repositorioVehiculo.findAll();
         return vehiculos.stream()
-                .map(vehiculoLiteDtoMapper::toVehiculoPublicoDto)
+                .map(vehiculoMapper::toVehiculoPublicoDto)
                 .collect(Collectors.toList());
     }
 

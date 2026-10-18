@@ -69,7 +69,7 @@ public class GatewayConfig {
         @Bean
         public RouteLocator routesLocator(RouteLocatorBuilder builder) {
                 return builder.routes()
-                                .route("Gestion", r -> r.path("/admin/**")
+                                .route("Gestion", r -> r.path("/admin/**", "/api/v1/admin/**", "/api/v1/conductores/**")
                                                 .filters(f -> f
                                                                 .tokenRelay()
                                                                 .requestRateLimiter(config -> config
@@ -142,7 +142,7 @@ public class GatewayConfig {
                                                                                 .setKeyResolver(ipKeyResolver)))
                                                 .uri(distribucionTelemetriaUri))
 
-                                .route("GestionPublic", r -> r.path("/public/**")
+                                .route("GestionPublic", r -> r.path("/public/**", "/api/v1/publico/**")
                                                 .filters(f -> f
                                                                 .requestRateLimiter(config -> config
                                                                                 .setRateLimiter(publicRateLimiter)

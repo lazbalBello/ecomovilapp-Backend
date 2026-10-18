@@ -1,10 +1,8 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Vehiculos.VehiculoLiteDto;
 import com.ServiciosTransporte.Gestion.Mappers.VehiculoAsignacionMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.AsignacionLiteDtoMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.VehiculoLiteDtoMapper;
-import com.ServiciosTransporte.Gestion.MappersUpdate.AsignacionUpdateDtoMapper;
+import com.ServiciosTransporte.Gestion.Mappers.VehiculoMapper;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioConductor;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculo;
@@ -33,11 +31,7 @@ class ServicioVehiculoAsignacionTest {
     @Mock
     private IRepositorioVehiculoAsignacion repositorioVehiculoAsignacion;
     @Mock
-    private AsignacionLiteDtoMapper asignacionLiteDtoMapper;
-    @Mock
-    private AsignacionUpdateDtoMapper asignacionUpdateDtoMapper;
-    @Mock
-    private VehiculoLiteDtoMapper vehiculoLiteDtoMapper;
+    private VehiculoMapper vehiculoMapper;
 
     private ServicioVehiculoAsignacion servicio;
 
@@ -48,9 +42,7 @@ class ServicioVehiculoAsignacionTest {
                 repositorioConductor,
                 vehiculoAsignacionMapper,
                 repositorioVehiculoAsignacion,
-                asignacionLiteDtoMapper,
-                asignacionUpdateDtoMapper,
-                vehiculoLiteDtoMapper
+                vehiculoMapper
         );
     }
 
@@ -58,11 +50,12 @@ class ServicioVehiculoAsignacionTest {
     void listaVehiculosActivosDelConductorPorUsuarioIdDelToken() {
         String usuarioId = "keycloak-user-id";
         Vehiculo vehiculo = new Vehiculo();
-        VehiculoLiteDto vehiculoDto = new VehiculoLiteDto();
+        VehiculoLiteDto vehiculoDto = new VehiculoLiteDto(null, null, null, 0,
+                null, null, null, null, null, null);
 
         when(repositorioVehiculoAsignacion.findVehiculosActivosByConductorUsuarioId(usuarioId))
                 .thenReturn(List.of(vehiculo));
-        when(vehiculoLiteDtoMapper.toVehiculoLiteDto(vehiculo)).thenReturn(vehiculoDto);
+        when(vehiculoMapper.toVehiculoLiteDto(vehiculo)).thenReturn(vehiculoDto);
 
         assertEquals(List.of(vehiculoDto), servicio.listarVehiculosActivosDelConductor(usuarioId));
         verify(repositorioVehiculoAsignacion).findVehiculosActivosByConductorUsuarioId(usuarioId);

@@ -1,10 +1,11 @@
 package com.ServiciosTransporte.Gestion.MappersUpdate;
 
-import com.ServiciosTransporte.Gestion.DtoUpdate.ConductorUpdateDto;
+import com.ServiciosTransporte.Gestion.Config.CentralMapperConfig;
+import com.ServiciosTransporte.Gestion.DtoActualizacion.ConductorUpdateDto;
 import com.ServiciosTransporte.Gestion.Modelos.Conductor;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(config = CentralMapperConfig.class, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ConductorUpdateDtoMapper {
 
     @Mapping(target = "categoriasLicencia", ignore = true)

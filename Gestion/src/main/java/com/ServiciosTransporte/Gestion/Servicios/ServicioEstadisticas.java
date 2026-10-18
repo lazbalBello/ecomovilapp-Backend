@@ -1,10 +1,10 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasAsignacionesDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasConductoresDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasResumenDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasRutasDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasVehiculosDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasAsignacionesDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasConductoresDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasResumenDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasRutasDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasVehiculosDto;
 import com.ServiciosTransporte.Gestion.Modelos.EstadoVehiculo;
 import com.ServiciosTransporte.Gestion.Modelos.VehiculoAsignacion;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioConductor;

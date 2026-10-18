@@ -26,12 +26,14 @@ public class RegistroConductorConsumer {
     @KafkaListener(topics = "inicio-registro-conductor", groupId = "servicios-flota")
     public void handleSuceso(ConsumerRecord<String, RegistroConductorIniciado> recordEvento){
         RegistroConductorIniciado evento = recordEvento.value();
-        ConductorDto conductor = new ConductorDto();
-        conductor.setDni(String.valueOf(evento.getDni()));
-        conductor.setUsuarioId(String.valueOf(evento.getKeycloakId()));
-        conductor.setNombre(String.valueOf(evento.getNombre()));
-        conductor.setApellidos(String.valueOf(evento.getApellido()));
-        conductor.setCategoriasLicencia(evento.getCategoriasLicencia().stream().map(CharSequence::toString).toList());
+        ConductorDto conductor = new ConductorDto(
+                null,
+                String.valueOf(evento.getDni()),
+                String.valueOf(evento.getKeycloakId()),
+                String.valueOf(evento.getNombre()),
+                String.valueOf(evento.getApellido()),
+                evento.getCategoriasLicencia().stream().map(CharSequence::toString).toList(),
+                true);
         try {
             if (evento.getAdminId() != null && !evento.getAdminId().toString().trim().isEmpty()) {
                 org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =

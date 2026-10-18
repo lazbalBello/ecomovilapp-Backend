@@ -1,14 +1,14 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
 import com.ServiciosTransporte.Gestion.Dto.RutaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaSugerenciaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
-import com.ServiciosTransporte.Gestion.DtoUpdate.RutaUpdateDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Rutas.RutaLiteDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Rutas.RutaSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Vehiculos.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.DtoActualizacion.RutaUpdateDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioAsignarRuta;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioRuta;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,24 +16,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/Ruta/v1")
+@RequestMapping("/api/v1/admin/rutas")
+@RequiredArgsConstructor
 public class ControladorRuta {
 
-    @Autowired
-    private ServicioRuta servicioRuta;
+    private final ServicioRuta servicioRuta;
+    private final ServicioAsignarRuta servicioAsignarRuta;
 
-    @Autowired
-    private ServicioAsignarRuta servicioAsignarRuta;
-
-    @PostMapping("/registrar")
+    @PostMapping
     public ResponseEntity<RutaDto> registrarRuta(@Valid @RequestBody RutaDto rutaDto){
         RutaDto ruta = servicioRuta.registrarRuta(rutaDto);
         return new ResponseEntity<>(ruta, HttpStatus.CREATED);
     }
 
-    @PutMapping("/asignar/ruta/{rutaId}/vehiculo/{vehiculoId}")
+    @PutMapping("/{rutaId}/vehiculos/{vehiculoId}")
     public ResponseEntity<VehiculoLiteDto> asignarRutaAVehiculo(@PathVariable Long rutaId, @PathVariable Long vehiculoId){
-        VehiculoLiteDto actualizado = servicioAsignarRuta.asignarRutaAVehiculo(rutaId,vehiculoId);
+        VehiculoLiteDto actualizado = servicioAsignarRuta.asignarRutaAVehiculo(rutaId, vehiculoId);
         return ResponseEntity.ok(actualizado);
     }
 
@@ -43,28 +41,27 @@ public class ControladorRuta {
         return ResponseEntity.ok(ruta);
     }
 
-    @GetMapping("/admin/sugerencia")
-    public  ResponseEntity<List<RutaSugerenciaDto>> sugerirRuta(@RequestParam("nombre") String nombre){
+    @GetMapping("/sugerencias")
+    public ResponseEntity<List<RutaSugerenciaDto>> sugerirRuta(@RequestParam("nombre") String nombre){
         List<RutaSugerenciaDto> sugerencias = servicioRuta.sugerirRuta(nombre);
         return ResponseEntity.ok(sugerencias);
     }
 
-    @GetMapping("/listar")
+    @GetMapping
     public ResponseEntity<List<RutaLiteDto>> listarTodo(){
         List<RutaLiteDto> rutas = servicioRuta.listarTodo();
         return ResponseEntity.ok(rutas);
     }
 
-    @PatchMapping("/actualizar/{id}")
-    public ResponseEntity<RutaLiteDto> actualizarRuta
-            (@PathVariable Long id, @Valid @RequestBody RutaUpdateDto updateDto){
-        RutaLiteDto actualizada = servicioRuta.actualizarRuta(id,updateDto);
+    @PatchMapping("/{id}")
+    public ResponseEntity<RutaLiteDto> actualizarRuta(
+            @PathVariable Long id, @Valid @RequestBody RutaUpdateDto updateDto){
+        RutaLiteDto actualizada = servicioRuta.actualizarRuta(id, updateDto);
         return ResponseEntity.ok(actualizada);
     }
 
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<Void> eliminarRuta(
-            @PathVariable Long id){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarRuta(@PathVariable Long id){
         servicioRuta.softDelete(id);
         return ResponseEntity.noContent().build();
     }

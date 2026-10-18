@@ -4,31 +4,24 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import java.io.Serializable;
+
 import java.util.List;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class RutaDto implements Serializable {
+public record RutaDto(
+        /** Poblado al retornar la entidad guardada; ignorado al mapear DTO→Entidad. */
+        Long id,
 
-    /** Poblado al retornar la entidad guardada; ignorado al mapear DTO→Entidad. */
-    private Long id;
+        @NotBlank(message = "El nombre de la ruta no debe estar en blanco")
+        @Pattern(regexp = "^[\\p{L}\\p{N}\\s]+$",
+                message = "El nombre no debe tener caracteres especiales")
+        String nombre,
 
-    @NotBlank(message = "El nombre de la ruta no debe estar en blanco")
-    @Pattern(regexp = "^[\\p{L}\\p{N}\\s]+$",
-            message = "El nombre no debe tener caracteres especiales")
-    private String nombre;
+        @NotNull(message = "Se debe seleccionar un recorrido")
+        @NotEmpty(message = "Se debe seleccionar un recorrido")
+        List<RecorridoRutaDto> recorrido,
 
-    @NotNull(message ="Se debe seleccionar un recorrido")
-    @NotEmpty(message = "Se debe seleccionar un recorrido")
-    private List<RecorridoRutaDto> recorrido;
-
-    @Pattern(regexp = "^[\\p{L}\\p{N}\\s]+$",
-            message = "La descripción no debe tener caracteres especiales")
-    private String descripcion;
-
+        @Pattern(regexp = "^[\\p{L}\\p{N}\\s]+$",
+                message = "La descripción no debe tener caracteres especiales")
+        String descripcion
+) {
 }

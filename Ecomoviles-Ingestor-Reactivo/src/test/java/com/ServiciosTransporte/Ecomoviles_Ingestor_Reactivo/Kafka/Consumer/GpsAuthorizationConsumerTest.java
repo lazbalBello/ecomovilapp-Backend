@@ -1,6 +1,6 @@
 package com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Kafka.Consumer;
 
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Services.GpsAuthorizationService;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.GpsAuthorizationService;
 import com.servicioTransporte.flota.eventos.vehiculo.configuracion.DispositivoGpsAutorizado;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
