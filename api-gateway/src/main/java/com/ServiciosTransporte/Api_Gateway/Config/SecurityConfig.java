@@ -13,6 +13,7 @@ public class SecurityConfig {
         public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
                 return http
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                                .cors(Customizer.withDefaults())
                                 .authorizeExchange(exchanges -> exchanges
                                                 .pathMatchers("/api/v1/publico/**", "/public/**",
                                                                 "/api/v1/auth/**", "/auth/**",

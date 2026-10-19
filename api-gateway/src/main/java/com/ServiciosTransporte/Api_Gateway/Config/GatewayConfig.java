@@ -9,6 +9,7 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
@@ -53,9 +54,9 @@ public class GatewayConfig {
         }
 
         @Bean
-        public CorsWebFilter corsWebFilter() {
+        public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration corsConfig = new CorsConfiguration();
-                corsConfig.setAllowedOrigins(List.of("*"));
+                corsConfig.setAllowedOriginPatterns(List.of("*"));
                 corsConfig.setMaxAge(3600L);
                 corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT","PATCH", "DELETE", "OPTIONS", "HEAD"));
                 corsConfig.setAllowedHeaders(List.of("*"));
@@ -63,7 +64,12 @@ public class GatewayConfig {
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", corsConfig);
 
-                return new CorsWebFilter(source);
+                return source;
+        }
+
+        @Bean
+        public CorsWebFilter corsWebFilter(CorsConfigurationSource corsConfigurationSource) {
+                return new CorsWebFilter(corsConfigurationSource);
         }
 
         @Bean
