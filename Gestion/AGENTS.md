@@ -10,7 +10,7 @@ API REST que actúa como servidor de recursos para operaciones CRUD sobre vehíc
 - Integración Kafka (orquestación tipo Saga): escucha eventos de creación de usuarios desde `identidad`, registra el conductor en PostgreSQL y publica eventos de éxito/fallo para coordinar rollback si corresponde.
 - Contratos: usar las clases generadas por `eventos-flota` para publicar/consumir mensajes en Kafka.
 - Manejo de errores: centralizado mediante `GlobalExceptionHandler` con formato `{ timestamp, estado, error, path }`, incluyendo captura explícita de `NoResourceFoundException` (404) y `HttpRequestMethodNotSupportedException` (405).
-- Módulo de Auditoría Centralizada: implementado con Spring AOP (`@Auditable`), capturando snapshots (`datosAnteriores`, `datosNuevos`) en columnas `JSONB` de PostgreSQL en la tabla `auditoria_log`, ejecutado de manera aislada con `@Transactional(propagation = Propagation.REQUIRES_NEW)`. Se consulta mediante `ControladorAuditoria` en `/admin/Auditoria/v1`. El bean `auditoriaObjectMapper` utiliza MixIns para excluir colecciones de relaciones secundarias (`asignaciones`, `historialAsignaciones`) garantizando diffs limpios y evitando consultas lazy innecesarias.
+- Módulo de Auditoría Centralizada: implementado con Spring AOP (`@Auditable`), capturando snapshots (`datosAnteriores`, `datosNuevos`) en columnas `JSONB` de PostgreSQL en la tabla `auditoria_log`, ejecutado de manera aislada con `@Transactional(propagation = Propagation.REQUIRES_NEW)`. Se consulta mediante `ControladorAuditoria` en `GET /api/v1/admin/auditorias`. El bean `auditoriaObjectMapper` utiliza MixIns para excluir colecciones de relaciones secundarias (`asignaciones`, `historialAsignaciones`) garantizando diffs limpios y evitando consultas lazy innecesarias.
 - Estrategia de Caché Distribuida con Redis: configurada en base de datos lógica dedicada (`database: 2`), con serializador JSON polimórfico (`GenericJackson2JsonRedisSerializer`) usando `activateDefaultTyping(..., DefaultTyping.EVERYTHING)` — **obligatorio** porque los records son clases finales y con `NON_FINAL` el JSON en Redis no llevaría `@class` (los cache-hits de DTOs records devolverían `LinkedHashMap` → `ClassCastException`). Al desplegar esta versión conviene vaciar las claves `gestion:*` previas (escritas sin `@class` en sus records). Con resiliencia ante caídas (`CacheErrorHandler`) y desalojo granular (`@CacheEvict` / `@Caching`) en eventos CUD de rutas, paradas y vehículos para los endpoints públicos (`gestion:rutas`, `gestion:paradas`, `gestion:resumen-activos`).
 - Mapeo DTO/Entidad: una única interfaz MapStruct por entidad, centralizada en `Mappers/`, que agrupa los mapeos de creación, de respuesta y de actualización. Configuración común vía `CentralMapperConfig` (`componentModel = "spring"`, `unmappedTargetPolicy = IGNORE`); las actualizaciones (`@MappingTarget`) usan `@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)`. Los paquetes `MappersResponse` y `MappersUpdate` quedan obsoletos y pendientes de eliminación.
 - DTOs como Records (IMPLEMENTADO): TODOS los DTOs (paquetes `Dto`, `DtoRespuesta`, `DtoActualizacion`) son records de Java. Mantener esta convención al crear DTOs nuevos.
@@ -18,6 +18,39 @@ API REST que actúa como servidor de recursos para operaciones CRUD sobre vehíc
   - Validación: las anotaciones (`@NotBlank`, `@Pattern`, etc., incluidas las container-element `List<@NotBlank String>` y la custom `NotEmptyIfNotNull` con `@Target(FIELD)`) se colocan sobre los componentes del record; Bean Validation las valida igual que en clases con campos.
   - Accesores: los records usa accesores `campo()` (sin `get/is`); MapStruct lee/escribe records vía accessors y constructor canónico, sin cambios en las interfaces.
   - Kafka: `RegistroConductorConsumer` construye `ConductorDto` con el constructor canónico (disponibilidad explícita en `true`; equivalente al default anterior).
+
+## Contrato de API (v1)
+
+Todos los controladores (`Controladores/v1/`) exponen únicamente rutas versionadas bajo `/api/v1/**` (refactor `refactor/rest-api-clean-architecture`). La autorización vive en `Config/SecurityConfig.java`:
+
+| Prefijo | Rol requerido |
+|---|---|
+| `/api/v1/publico/**` | público (`permitAll`) |
+| `/api/v1/conductores/mis-vehiculos` | `driver` |
+| `/api/v1/admin/**` | `admin` |
+
+Recursos CRUD (listar / crear en la colección; detalle, actualizar y eliminar por `{id}`):
+
+| Recurso | Colección | Crear | Actualizar | Eliminar |
+|---|---|---|---|---|
+| Vehículos | `GET /api/v1/admin/vehiculos` | `POST /api/v1/admin/vehiculos` | `PATCH /api/v1/admin/vehiculos/{id}` | `DELETE /api/v1/admin/vehiculos/{id}` |
+| Conductores | `GET /api/v1/admin/conductores` | `POST /api/v1/admin/conductores` | `PATCH /api/v1/admin/conductores/{id}` | `DELETE /api/v1/admin/conductores/{id}` |
+| Rutas | `GET /api/v1/admin/rutas` | `POST /api/v1/admin/rutas` | `PATCH /api/v1/admin/rutas/{id}` | `DELETE /api/v1/admin/rutas/{id}` |
+| Paradas | `GET /api/v1/admin/paradas` | `POST /api/v1/admin/paradas` | `PATCH /api/v1/admin/paradas/{id}` | `DELETE /api/v1/admin/paradas/{id}` |
+| Asignaciones | `GET /api/v1/admin/asignaciones` | `POST /api/v1/admin/asignaciones` | `PATCH /api/v1/admin/asignaciones/{id}` | `DELETE /api/v1/admin/asignaciones/{id}` |
+| Auditoría | `GET /api/v1/admin/auditorias` | — | — | — |
+
+Endpoints singulares y de negocio:
+
+- Vehículos: `GET .../vehiculos/por-matricula`, `.../filtrar`, `.../sugerencias`, `.../gps/{gpsId}`, `.../eliminados`; `DELETE .../vehiculos/{id}/gps` (desasociar GPS).
+- Conductores: `GET .../conductores/por-dni`, `.../filtrar`, `.../sugerencias-dni`, `.../sugerencias`, `.../eliminados`.
+- Rutas: `PUT /api/v1/admin/rutas/{rutaId}/vehiculos/{vehiculoId}` (asignar vehículo), `GET .../sugerencias`, `.../eliminadas` (bajo `/rutas`).
+- Paradas: `GET .../sugerencias`, `.../eliminadas` (bajo `/paradas`).
+- Asignaciones: `GET .../eliminadas`; `GET /api/v1/conductores/mis-vehiculos` (rol `driver`).
+- Estadísticas: `GET /api/v1/admin/estadisticas/resumen` (y `/vehiculos`, `/rutas`, `/conductores`, `/asignaciones`).
+- Público: `GET /api/v1/publico/vehiculos`, `/estadisticas`, `/estadisticas/vehiculos-activos`, `/estadisticas/rutas-activas`, `/rutas/mapa`, `/paradas/mapa`.
+
+> Compatibilidad: `SecurityConfig` y `GatewayConfig` mantienen también los prefijos antiguos `/admin/**` y `/public/**` para clientes sin migrar, pero los controladores ya no mapean esas rutas. El frontend Angular (`Frontend_Urbano_Angular`) ya usa las rutas `/api/v1/**` (`environment.apiUrl = http://localhost/api/v1/admin`, `PUBLIC_URL = gatewayUrl + /api/v1/publico`, `CONDUCTOR_URL = gatewayUrl + /api/v1/conductores`).
 
 ## Dependencias Principales
 
