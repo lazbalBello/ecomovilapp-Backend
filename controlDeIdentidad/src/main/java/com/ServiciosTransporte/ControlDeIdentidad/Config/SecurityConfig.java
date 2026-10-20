@@ -1,4 +1,4 @@
-package com.ServiciosTransporte.ControlDeIdentidad.Security;
+package com.ServiciosTransporte.ControlDeIdentidad.Config;
 
 import lombok.NonNull;
 import org.springframework.context.annotation.Bean;

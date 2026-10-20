@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/usuarios")
-public class ControladorGestionDeUsuarios {
+public class ControladorUsuarios {
 
     @Autowired
     private ServicioUsuarios servicioUsuarios;
