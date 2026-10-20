@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GpsAuthorizationServiceTest {
+class ServicioAutorizacionGpsTest {
 
-    private GpsAuthorizationService authorizationService;
+    private ServicioAutorizacionGps authorizationService;
 
     @BeforeEach
     void setUp() {
-        authorizationService = new GpsAuthorizationService();
+        authorizationService = new ServicioAutorizacionGps();
         authorizationService.clear();
     }
 

@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotNull;
 
 public record EstadoDto(
 
-        @NotBlank(message = "se requiere el id del vehículo")
-        String vehiculoId,
+        @NotBlank(message = "se requiere el id del gps del vehículo")
+        String gpsId,
         @NotNull(message = "Se requiere el nuevo estado")
         @Max(3)
         @Min(0)

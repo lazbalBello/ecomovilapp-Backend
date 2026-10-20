@@ -3,7 +3,7 @@ package com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Tcp;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.DecoderFactory;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.ProtocolDecoder;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.ProtocolFrameDecoder;
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.TelemetryIngestionService;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.ServicioIngestaTelemetria;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -28,7 +28,7 @@ public class ProtocolDemultiplexerHandler extends ByteToMessageDecoder {
     private static final AttributeKey<Boolean> DETECTED_KEY = AttributeKey.valueOf("DETECTION_DONE");
 
     private final DecoderFactory decoderFactory;
-    private final TelemetryIngestionService ingestionService;
+    private final ServicioIngestaTelemetria ingestionService;
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {

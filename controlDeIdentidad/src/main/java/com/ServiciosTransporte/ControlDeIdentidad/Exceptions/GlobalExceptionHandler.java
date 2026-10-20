@@ -1,7 +1,7 @@
 package com.ServiciosTransporte.ControlDeIdentidad.Exceptions;
 
-import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserAlreadyExistsException;
 import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserCreationException;
+import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserAlreadyExistsException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,76 +18,70 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handlerGeneralException(Exception ex){
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", ex.getMessage()));
-    }
-
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Object> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.CONFLICT.value());
-        body.put("error", "Conflict");
-        body.put("message", ex.getMessage());
-
-        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    public ResponseEntity<Object> handleUserAlreadyExistsException(UserAlreadyExistsException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.CONFLICT.value(), ex.getMessage(), request),
+                HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(UserCreationException.class)
-    public ResponseEntity<Object> handleUserCreationException(UserCreationException ex) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Bad Request");
-        body.put("message", ex.getMessage());
-
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> handleUserCreationException(UserCreationException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), request),
+                HttpStatus.BAD_REQUEST);
     }
 
-
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<?> handlerAuthenticationException(AuthenticationException ex, WebRequest request){
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.UNAUTHORIZED.value());
-        body.put("error", "Autenticación fallida");
-        body.put("mensage", ex.getMessage());
-        body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body,HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<?> handlerAuthenticationException(AuthenticationException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.UNAUTHORIZED.value(),
+                "Autenticación fallida", request), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handlerIllegalArgumentException(IllegalArgumentException ex, WebRequest request){
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.BAD_REQUEST);
-        body.put("error", "Argumentos inválidos");
-        body.put("mensage", ex.getMessage());
-        body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body,HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> handlerIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(), request), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request){
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.BAD_REQUEST);
-        body.put("error", "Error de validación");
-        body.put("mensage", ex.getMessage());
-        body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body,HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request) {
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+            fieldErrors.put(error.getField(), error.getDefaultMessage() != null ? error.getDefaultMessage() : "Campo inválido")
+        );
+
+        String generalMessage = fieldErrors.values().stream().findFirst().orElse("Error de validación en la petición");
+
+        Map<String, Object> body = cuerpoBase(HttpStatus.BAD_REQUEST.value(), generalMessage, request);
+        body.put("fieldErrors", fieldErrors);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<?> handelConstraintViolationException(ConstraintViolationException ex, WebRequest request){
+    public ResponseEntity<?> handelConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        ex.getConstraintViolations().forEach(violation ->
+            fieldErrors.put(violation.getPropertyPath().toString(), violation.getMessage())
+        );
+
+        String generalMessage = ex.getMessage();
+
+        Map<String, Object> body = cuerpoBase(HttpStatus.BAD_REQUEST.value(), generalMessage, request);
+        body.put("fieldErrors", fieldErrors);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handlerGeneralException(Exception ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(cuerpoBase(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error interno del servidor", request));
+    }
+
+    private Map<String, Object> cuerpoBase(int estado, String error, WebRequest request) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.BAD_REQUEST);
-        body.put("error", "Error de validación");
-        body.put("mensage", ex.getMessage());
+        body.put("estado", estado);
+        body.put("error", error);
         body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body,HttpStatus.BAD_REQUEST);
+        return body;
     }
 }

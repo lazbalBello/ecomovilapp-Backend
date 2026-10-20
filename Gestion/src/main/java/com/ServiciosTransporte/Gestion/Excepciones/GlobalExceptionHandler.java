@@ -25,113 +25,62 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<?> handleResponseStatusException(ResponseStatusException ex, WebRequest request) {
         String msg = ex.getReason() != null ? ex.getReason() : ex.getMessage();
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", ex.getStatusCode().value());
-        body.put("error", msg);
-        body.put("mensage", msg);
-        body.put("message", msg);
-        body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body, ex.getStatusCode());
+        return new ResponseEntity<>(cuerpoBase(ex.getStatusCode().value(), msg, request), ex.getStatusCode());
     }
 
     @ExceptionHandler(UnexpectedRollbackException.class)
     public ResponseEntity<?> handleUnexpectedRollback(UnexpectedRollbackException ex, WebRequest request) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.CONFLICT.value());
-        body.put("error", "Error de integridad: la transacción fue revertida debido a una inconsistencia de datos.");
-        body.put("mensage", ex.getMessage());
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.CONFLICT.value(),
+                "Error de integridad: la transacción fue revertida debido a una inconsistencia de datos.", request),
+                HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handlerGeneralException(Exception ex, WebRequest request){
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Error interno del servidor");
-        body.put("mensage", ex.getMessage());
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false));
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    public ResponseEntity<?> handlerGeneralException(Exception ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(cuerpoBase(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error interno del servidor", request));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<?> handleDuplicatedKey(DataIntegrityViolationException ex, WebRequest request) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.CONFLICT.value());
-        body.put("error", "Valor duplicado " +  obtenerValorDuplicado(ex));
-
-        String mensajeExtra = obtenerValorDuplicado(ex);
-        body.put("mensage", mensajeExtra);
-        body.put("message", mensajeExtra);
-        body.put("path", request.getDescription(false));
-
-        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.CONFLICT.value(),
+                obtenerValorDuplicado(ex), request), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<?> handlerEntityNotfoundException(EntityNotFoundException ex, WebRequest request){
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.NOT_FOUND.value());
-        body.put("error", "Entidad no encontrada");
-        body.put("mensage", ex.getMessage());
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body,HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> handlerEntityNotfoundException(EntityNotFoundException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(), request), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<?> handlerAuthenticationException(AuthenticationException ex, WebRequest request){
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.UNAUTHORIZED.value());
-        body.put("error", "Autenticación fallida");
-        body.put("mensage", ex.getMessage());
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body,HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<?> handlerAuthenticationException(AuthenticationException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.UNAUTHORIZED.value(),
+                "Autenticación fallida", request), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handlerIllegalArgumentException(IllegalArgumentException ex, WebRequest request){
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.BAD_REQUEST);
-        body.put("error", "Argumentos inválidos");
-        body.put("mensage", ex.getMessage());
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body,HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> handlerIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(), request), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request){
+    public ResponseEntity<?> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
+        ex.getBindingResult().getFieldErrors().forEach(error ->
             fieldErrors.put(error.getField(), error.getDefaultMessage() != null ? error.getDefaultMessage() : "Campo inválido")
         );
 
         String generalMessage = fieldErrors.values().stream().findFirst().orElse("Error de validación en la petición");
 
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Error de validación");
-        body.put("mensage", generalMessage);
-        body.put("message", generalMessage);
+        Map<String, Object> body = cuerpoBase(HttpStatus.BAD_REQUEST.value(), generalMessage, request);
         body.put("fieldErrors", fieldErrors);
-        body.put("path", request.getDescription(false));
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<?> handelConstraintViolationException(ConstraintViolationException ex, WebRequest request){
+    public ResponseEntity<?> handelConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         ex.getConstraintViolations().forEach(violation ->
             fieldErrors.put(violation.getPropertyPath().toString(), violation.getMessage())
@@ -139,15 +88,18 @@ public class GlobalExceptionHandler {
 
         String generalMessage = ex.getMessage();
 
+        Map<String, Object> body = cuerpoBase(HttpStatus.BAD_REQUEST.value(), generalMessage, request);
+        body.put("fieldErrors", fieldErrors);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    private Map<String, Object> cuerpoBase(int estado, String error, WebRequest request) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("estado", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Error de validación");
-        body.put("mensage", generalMessage);
-        body.put("message", generalMessage);
-        body.put("fieldErrors", fieldErrors);
+        body.put("estado", estado);
+        body.put("error", error);
         body.put("path", request.getDescription(false));
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return body;
     }
 
     private String obtenerValorDuplicado(DataIntegrityViolationException ex) {

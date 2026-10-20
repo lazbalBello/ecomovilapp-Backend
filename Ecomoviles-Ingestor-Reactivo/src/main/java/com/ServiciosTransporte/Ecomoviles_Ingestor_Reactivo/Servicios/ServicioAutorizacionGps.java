@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Service
-public class GpsAuthorizationService {
+public class ServicioAutorizacionGps {
 
     private final Set<String> authorizedGpsIds = ConcurrentHashMap.newKeySet();
 

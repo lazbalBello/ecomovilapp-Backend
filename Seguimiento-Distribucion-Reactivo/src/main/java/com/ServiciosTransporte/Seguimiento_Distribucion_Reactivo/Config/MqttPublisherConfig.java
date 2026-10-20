@@ -1,4 +1,4 @@
-package com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Mqtt.Config;
+package com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Config;
 
 import org.eclipse.paho.mqttv5.client.IMqttClient;
 import org.eclipse.paho.mqttv5.client.MqttClient;

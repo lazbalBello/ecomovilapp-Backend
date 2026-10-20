@@ -3,7 +3,7 @@ package com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Tcp;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.DecoderFactory;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.Decoders.Iris807Decoder;
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.Decoders.Jt808Decoder;
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.TelemetryIngestionService;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.ServicioIngestaTelemetria;
 import com.servicioTransporte.flota.eventos.vehiculo.seguimiento.TelemetriaVehiculo;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class ProtocolDemultiplexerHandlerTest {
 
     private DecoderFactory decoderFactory;
-    private TelemetryIngestionService ingestionService;
+    private ServicioIngestaTelemetria ingestionService;
     private EmbeddedChannel channel;
 
     @BeforeEach
@@ -32,7 +32,7 @@ class ProtocolDemultiplexerHandlerTest {
         Jt808Decoder jt808Decoder = new Jt808Decoder();
         decoderFactory = new DecoderFactory(List.of(irisDecoder, jt808Decoder));
 
-        ingestionService = mock(TelemetryIngestionService.class);
+        ingestionService = mock(ServicioIngestaTelemetria.class);
         when(ingestionService.processTelemetry(any())).thenReturn(Mono.empty());
         when(ingestionService.processRawData(any())).thenReturn(Mono.empty());
 

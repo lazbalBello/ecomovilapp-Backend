@@ -1,7 +1,7 @@
 package com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Tcp;
 
 import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Infraestructura.DecoderFactory;
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.TelemetryIngestionService;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.ServicioIngestaTelemetria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -15,7 +15,7 @@ import reactor.netty.tcp.TcpServer;
 public class NettyNetworkConfig {
 
     private final DecoderFactory decoderFactory;
-    private final TelemetryIngestionService ingestionService;
+    private final ServicioIngestaTelemetria ingestionService;
 
     // Escuchamos el evento de inicio de la aplicación para arrancar el servidor TCP
     @EventListener(ApplicationReadyEvent.class)

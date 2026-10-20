@@ -2,26 +2,21 @@ package com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Servicios;
 
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.EstadoCirculacion;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.EstadoDto;
-import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.TelemetriaJsonDto;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.VehiculoRedisDto;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Mappers.TelemetriaMapper;
-import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Mqtt.Config.MqttPublisherConfig.MqttPublisher;
+import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Config.MqttPublisherConfig.MqttPublisher;
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Utils.GeoUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.servicioTransporte.flota.eventos.vehiculo.seguimiento.TelemetriaVehiculo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import reactor.kafka.sender.KafkaSender;
-import reactor.kafka.sender.SenderRecord;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ServicioDistribucion {
+public class ServicioDistribucionTelemetria {
 
     private final ReactiveStringRedisTemplate redisTemplate;
     private final TelemetriaMapper telemetriaMapper;
@@ -184,7 +179,7 @@ public class ServicioDistribucion {
     }
 
     public Mono<Void> actualizarEstadoManual(EstadoDto cambioDto) {
-        String key = "vehiculo:" + cambioDto.vehiculoId();
+        String key = "vehiculo:" + cambioDto.gpsId();
         String nuevoEstadoStr = EstadoCirculacion.values()[cambioDto.nuevoEsatado()].name();
 
         return redisTemplate.opsForHash().put(key, "status", nuevoEstadoStr)
@@ -192,7 +187,7 @@ public class ServicioDistribucion {
                 .flatMap(mapa -> {
                     if (mapa.isEmpty()) return Mono.empty();
                     Map<Object, Object> mapaObj = new HashMap<>(mapa);
-                    VehiculoRedisDto dto = telemetriaMapper.mapFromRedis(cambioDto.vehiculoId(), mapaObj);
+                    VehiculoRedisDto dto = telemetriaMapper.mapFromRedis(cambioDto.gpsId(), mapaObj);
                     return emitirAMqtt(dto);
                 });
     }

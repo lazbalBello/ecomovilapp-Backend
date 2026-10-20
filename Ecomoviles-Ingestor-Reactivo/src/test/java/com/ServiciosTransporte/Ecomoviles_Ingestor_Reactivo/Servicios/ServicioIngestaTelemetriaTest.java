@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class TelemetryIngestionServiceTest {
+class ServicioIngestaTelemetriaTest {
 
     @Mock
     private DecoderFactory decoderFactory;
@@ -27,14 +27,14 @@ class TelemetryIngestionServiceTest {
     @Mock
     private KafkaSender<String, TelemetriaVehiculo> kafkaSender;
 
-    private GpsAuthorizationService authorizationService;
-    private TelemetryIngestionService ingestionService;
+    private ServicioAutorizacionGps authorizationService;
+    private ServicioIngestaTelemetria ingestionService;
 
     @BeforeEach
     void setUp() {
-        authorizationService = new GpsAuthorizationService();
+        authorizationService = new ServicioAutorizacionGps();
         authorizationService.clear();
-        ingestionService = new TelemetryIngestionService(decoderFactory, kafkaSender, authorizationService);
+        ingestionService = new ServicioIngestaTelemetria(decoderFactory, kafkaSender, authorizationService);
     }
 
     @Test

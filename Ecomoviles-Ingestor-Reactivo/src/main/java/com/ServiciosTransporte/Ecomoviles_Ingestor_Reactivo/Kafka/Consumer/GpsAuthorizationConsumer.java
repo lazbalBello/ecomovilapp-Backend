@@ -1,6 +1,6 @@
 package com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Kafka.Consumer;
 
-import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.GpsAuthorizationService;
+import com.ServiciosTransporte.Ecomoviles_Ingestor_Reactivo.Servicios.ServicioAutorizacionGps;
 import com.servicioTransporte.flota.eventos.vehiculo.configuracion.DispositivoGpsAutorizado;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import java.time.Duration;
 
 /**
  * Consumidor reactivo que sincroniza los eventos de alta/baja de GPS desde Kafka
- * hacia la memoria local (GpsAuthorizationService) para consultas en tiempo real.
+ * hacia la memoria local (ServicioAutorizacionGps) para consultas en tiempo real.
  */
 @Component
 @Slf4j
@@ -24,7 +24,7 @@ import java.time.Duration;
 public class GpsAuthorizationConsumer {
 
     private final KafkaReceiver<String, DispositivoGpsAutorizado> gpsAuthKafkaReceiver;
-    private final GpsAuthorizationService authorizationService;
+    private final ServicioAutorizacionGps authorizationService;
 
     @EventListener(ApplicationReadyEvent.class)
     public void iniciarConsumoAutorizaciones() {

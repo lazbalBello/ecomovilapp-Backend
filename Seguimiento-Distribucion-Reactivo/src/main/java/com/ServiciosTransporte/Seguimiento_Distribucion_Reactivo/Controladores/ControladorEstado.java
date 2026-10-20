@@ -1,7 +1,7 @@
 package com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Controladores;
 
 import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Dtos.EstadoDto;
-import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Servicios.ServicioDistribucion;
+import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Servicios.ServicioDistribucionTelemetria;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +17,12 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ControladorEstado {
 
-    private final ServicioDistribucion servicioDistribucion;
+    private final ServicioDistribucionTelemetria servicioDistribucionTelemetria;
 
     @PostMapping("/cambiar")
     @PreAuthorize("hasRole('driver')")
     public Mono<ResponseEntity<Void>> cambiarEstado(@RequestBody @Valid EstadoDto cambioDto) {
-        return servicioDistribucion.actualizarEstadoManual(cambioDto)
+        return servicioDistribucionTelemetria.actualizarEstadoManual(cambioDto)
                 .then(Mono.just(ResponseEntity.ok().build()));
     }
 }

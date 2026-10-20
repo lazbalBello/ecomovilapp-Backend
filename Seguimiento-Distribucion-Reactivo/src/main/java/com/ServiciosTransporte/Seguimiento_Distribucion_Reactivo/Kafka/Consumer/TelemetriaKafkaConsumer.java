@@ -1,6 +1,6 @@
 package com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Kafka.Consumer;
 
-import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Servicios.ServicioDistribucion;
+import com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Servicios.ServicioDistribucionTelemetria;
 import com.servicioTransporte.flota.eventos.vehiculo.seguimiento.TelemetriaVehiculo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class TelemetriaKafkaConsumer {
 
     private final KafkaReceiver<String, TelemetriaVehiculo> kafkaReceiver;
-    private final ServicioDistribucion servicioDistribucion;
+    private final ServicioDistribucionTelemetria servicioDistribucionTelemetria;
 
     @EventListener(ApplicationReadyEvent.class)
     public void iniciarConsumo() {
@@ -52,7 +52,7 @@ public class TelemetriaKafkaConsumer {
 
                             // 4. Procesar solo los mensajes filtrados
                             return Flux.fromIterable(ultimosPorVehiculo.values())
-                                    .flatMap(record -> servicioDistribucion.procesarTelemetriaKafka(record.value())
+                                    .flatMap(record -> servicioDistribucionTelemetria.procesarTelemetriaKafka(record.value())
                                             .onErrorResume(e -> {
                                                 // Aislamiento de fallos: Si un vehículo falla, no tumba el lote entero
                                                 log.error("Error al procesar evento para vehículo {}: {}", record.key(), e.getMessage());

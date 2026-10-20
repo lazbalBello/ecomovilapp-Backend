@@ -1,4 +1,4 @@
-package com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Security.Config;
+package com.ServiciosTransporte.Seguimiento_Distribucion_Reactivo.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

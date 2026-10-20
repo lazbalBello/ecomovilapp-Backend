@@ -14,11 +14,11 @@ import reactor.kafka.sender.SenderRecord;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TelemetryIngestionService {
+public class ServicioIngestaTelemetria {
 
     private final DecoderFactory decoderFactory;
     private final KafkaSender<String, TelemetriaVehiculo> kafkaSender;
-    private final GpsAuthorizationService authorizationService;
+    private final ServicioAutorizacionGps authorizationService;
 
     private static final String TOPIC = "vehiculos-entrada-telemetria";
 
