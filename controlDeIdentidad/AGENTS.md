@@ -10,6 +10,16 @@ Intermediario entre el frontend y Keycloak para autenticación y gestión de usu
 - Registro y Saga: al crear un conductor, registrar el usuario en Keycloak y publicar un evento en Kafka; escuchar la respuesta de `Gestion` y, si falla el registro en BD, ejecutar rollback borrando el usuario en Keycloak.
 - Contratos: publicar eventos de creación de usuarios en Kafka usando los esquemas de `eventos-flota`.
 
+## Arquitectura interna (post-refactor)
+
+- **Login unificado vía token endpoint:** `ServicioUsuarios.login` delega en `TokenClient.login(username, password)` (`WebClient`, `grant_type=password` contra `/realms/{realm}/protocol/openid-connect/token`). NO usar Direct Access Grants del admin-client. Mensajes de error de `AuthenticationFailedException`: 401 → "Credenciales inválidas: usuario o contraseña incorrectos"; conexión caída → "Imposible conectar con el servidor de identidad". `TokenClient.mapearToken(tr, mensajePorDefecto)` centraliza el null-check (no usar `assert`; son no-ops en producción).
+- **Sin pool de ResteasyClients:** `PooledKeycloak`, `RestClientPoolConfig` y `ResteasyClientFactory` fueron eliminados. `KeycloakProvider` construye un único `Keycloak` admin-client en `@PostConstruct` reutilizando un ResteasyClient compartido.
+- **Caché de roles de Keycloak:** `KeycloakProvider.obtenerRol(nombreRol)` usa `ConcurrentHashMap` + `computeIfAbsent`; elimina llamadas redundantes a la API admin en cada registro.
+- **Sin interfaz de servicio:** `ServicioUsuarios` es clase concreta (se eliminó `Utils/IKeycloakService.java`). Helpers privados: `registrarUsuario` (crea usuario, valida 201/409/otro → `UserAlreadyExistsException` / `UserCreationException`), `construirUserRepresentation` (credenciales embebidas no-temporales: elimina la llamada `resetPassword`, 1 solo HTTP call), `extraerUserId`, `asignarRolRealm`, `publicarRegistroConductor` (publish-after-commit del evento `RegistroConductorIniciado` al topic `inicio-registro-conductor` con `adminId` de `SecurityContextHolder`).
+- **DTOs como records:** `ConductorUsuarioDto` es record; compact constructor con default `Boolean disponibilidad` null → false. Sin `Serializable`.
+- **Errores REST normalizados:** `GlobalExceptionHandler` responde solo con campo `error` (+ `fieldErrors` en validación 400), igual que `Gestion`. Ya no se exponen `mensage`/`message`/`status`.
+- **Tests:** `ServicioUsuariosTest`, `KeycloakProviderTest`, `TokenClientTest` en `src/test/java` (Mockito puro / JDK HttpServer para el token endpoint). Ejecutar: `.\mvnw.cmd -q "-Dtest=ServicioUsuariosTest,KeycloakProviderTest,TokenClientTest" test`.
+
 ## Dependencias Principales
 
 | Dependencia | Versión | Propósito |
@@ -28,7 +38,7 @@ Intermediario entre el frontend y Keycloak para autenticación y gestión de usu
 | `spring-cloud-starter-openfeign` | 2025.0.0 (BOM) | Cliente HTTP declarativo para llamadas sincrónicas entre servicios |
 | `spring-boot-starter-validation` | (BOM padre) | Validación de DTOs de entrada (Bean Validation / JSR-380) |
 | `spring-boot-starter-actuator` | (BOM padre) | Endpoints de salud y monitoreo |
-| `commons-pool2` | 2.12.1 | Pool de conexiones (requerido para conexiones reactivas con Redis si aplica) |
+| `commons-pool2` | 2.12.1 | Sin usos actuales (quedó del pool eliminado); candidato a retirar del pom |
 | `lombok` | (BOM padre) | Reducción de boilerplate (solo compilación) |
 
 > **Spring Cloud Version:** `2025.0.0` — gestionada mediante BOM en `dependencyManagement`.

@@ -1,24 +1,23 @@
 package com.ServiciosTransporte.ControlDeIdentidad.Utils;
 
-import com.ServiciosTransporte.ControlDeIdentidad.Config.PooledKeycloak;
-import com.ServiciosTransporte.ControlDeIdentidad.Dtos.LoginDto;
-import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.AuthenticationFailedException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.ws.rs.NotAuthorizedException;
-import java.net.ConnectException;
-import jakarta.ws.rs.ProcessingException;
-import org.apache.commons.pool2.impl.GenericObjectPool;
+import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Slf4j
 @Component
 public class KeycloakProvider {
 
@@ -48,11 +47,11 @@ public class KeycloakProvider {
 
     private Keycloak adminClient;
 
-    @Autowired
-    private ResteasyClient resteasyClientCompartido;
+    /** Los roles del realm son estáticos (admin/user/driver): se leen una vez por HTTP y se cachean en RAM. */
+    private final Map<String, RoleRepresentation> rolesCache = new ConcurrentHashMap<>();
 
     @Autowired
-    private GenericObjectPool<ResteasyClient> loginClientPool;
+    private ResteasyClient resteasyClientCompartido;
 
     @PostConstruct
     private void buildKeycloak() {
@@ -68,44 +67,28 @@ public class KeycloakProvider {
                 .build();
     }
 
-
     public RealmResource getRealmResource() {
         return adminClient.realm(realmName);
     }
 
-    public   UsersResource getUserResource(){
-        RealmResource realmResource = getRealmResource();
-        return realmResource.users();
+    public UsersResource getUserResource() {
+        return getRealmResource().users();
     }
 
-    public Keycloak getKeycloak(){
+    public Keycloak getKeycloak() {
         return adminClient;
     }
 
-    public PooledKeycloak getUserKeycloak(LoginDto loginDto) {
-        try {
-            ResteasyClient tempClient =  loginClientPool.borrowObject();
-            Keycloak keycloak = KeycloakBuilder.builder()
-                    .serverUrl(serverUrl)
-                    .realm(realmName)
-                    .clientId(clientId)
-                    .clientSecret(clientSecret)
-                    .username(loginDto.email())
-                    .password(loginDto.password())
-                    .grantType(OAuth2Constants.PASSWORD)
-                    .resteasyClient(tempClient)
-                    .build();
-            return new PooledKeycloak(keycloak,tempClient,loginClientPool);
-        } catch (NotAuthorizedException e) {
-            throw new AuthenticationFailedException("Credenciales inválidas: usuario o contraseña incorrectos");
-        } catch (ProcessingException e) {
-            if (e.getCause() instanceof ConnectException) {
-                throw new AuthenticationFailedException("No se pudo conectar al servidor de autenticación");
-            }
-            throw new AuthenticationFailedException("Error en el procesamiento de la autenticación: " + e.getMessage());
-        } catch (Exception e) {
-            throw new AuthenticationFailedException("Error durante la autenticación: " + e.getMessage());
-        }
+    /**
+     * Devuelve la representación del rol leyéndola de Keycloak solo la primera vez
+     * (lazy: si el rol no existe o Keycloak no está disponible, falla igual que antes en ese momento).
+     */
+    public RoleRepresentation obtenerRol(String nombreRol) {
+        return rolesCache.computeIfAbsent(nombreRol, nombre -> {
+            RoleRepresentation rol = getRealmResource().roles().get(nombre).toRepresentation();
+            log.info("Rol de Keycloak leído y cacheado: {}", nombre);
+            return rol;
+        });
     }
 
     @PreDestroy

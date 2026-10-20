@@ -1,253 +1,162 @@
 package com.ServiciosTransporte.ControlDeIdentidad.Servicios;
 
-import com.ServiciosTransporte.ControlDeIdentidad.Config.PooledKeycloak;
 import com.ServiciosTransporte.ControlDeIdentidad.Dtos.ConductorUsuarioDto;
 import com.ServiciosTransporte.ControlDeIdentidad.Dtos.LoginDto;
 import com.ServiciosTransporte.ControlDeIdentidad.Dtos.TokenResponse;
 import com.ServiciosTransporte.ControlDeIdentidad.Dtos.UserDto;
-import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.AuthenticationFailedException;
 import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserAlreadyExistsException;
 import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserCreationException;
-import com.ServiciosTransporte.ControlDeIdentidad.Utils.IKeycloakService;
 import com.ServiciosTransporte.ControlDeIdentidad.Utils.KeycloakProvider;
+import com.ServiciosTransporte.ControlDeIdentidad.Utils.TokenClient;
 import com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado;
-import jakarta.ws.rs.NotAuthorizedException;
-import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.core.Response;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
-import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import java.net.ConnectException;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ServicioUsuarios implements IKeycloakService {
+public class ServicioUsuarios {
+
+    private static final String TOPIC_INIT = "inicio-registro-conductor";
+    private static final String ROL_ADMIN = "admin";
+    private static final String ROL_USER = "user";
+    private static final String ROL_DRIVER = "driver";
 
     private final KeycloakProvider keycloakProvider;
+    private final TokenClient tokenClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private static final String TOPIC_INIT = "inicio-registro-conductor";
 
-    @Override
     public List<UserRepresentation> findAllUsers() {
         return keycloakProvider.getRealmResource()
                 .users()
                 .list();
     }
 
-    @Override
     public List<UserRepresentation> searchUserByUsername(String username) {
         return keycloakProvider.getRealmResource()
                 .users()
                 .searchByUsername(username, true);
     }
 
-    @Override
-    public void createAdmin(@NonNull UserDto userDto) throws RuntimeException {
-
-        UsersResource users = keycloakProvider.getUserResource();
-
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setFirstName(userDto.nombre());
-        userRepresentation.setLastName(userDto.apellido());
-        userRepresentation.setUsername(userDto.nombreUsuario());
-        userRepresentation.setEmail(userDto.email());
-        userRepresentation.setEmailVerified(true);
-        userRepresentation.setEnabled(true);
-
-        try (Response response = users.create(userRepresentation)) {
-
-            if (response.getStatus() == 201) {
-                String path = response.getLocation().getPath();
-                String userId = path.substring(path.lastIndexOf("/") + 1);
-
-                CredentialRepresentation credential = new CredentialRepresentation();
-                credential.setTemporary(false);
-                credential.setType(OAuth2Constants.PASSWORD);
-                credential.setValue(userDto.password());
-
-                users.get(userId).resetPassword(credential);
-
-                RealmResource realmResource = keycloakProvider.getRealmResource();
-
-                List<RoleRepresentation> roles = List.of(realmResource.roles().get("admin").toRepresentation());
-
-                realmResource
-                        .users()
-                        .get(userId)
-                        .roles()
-                        .realmLevel()
-                        .add(roles);
-            } else if (response.getStatus() == 409) {
-                log.error("Ya está registrado este administrador");
-                throw new UserAlreadyExistsException("Ya está registrado este administrador");
-            } else {
-                log.error("Error al crear el administrador");
-                throw new UserCreationException("Error al registrar el administrador");
-            }
-        }
+    public void createAdmin(@NonNull UserDto userDto) {
+        registrarUsuario(userDto.nombreUsuario(), userDto.nombre(), userDto.apellido(), userDto.email(), userDto.password(),
+                ROL_ADMIN, "Ya está registrado este administrador", "Error al registrar el administrador");
     }
 
-    @Override
-    public void createUser(@NonNull UserDto userDto)throws RuntimeException{
-
-        UsersResource users = keycloakProvider.getUserResource();
-
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setFirstName(userDto.nombre());
-        userRepresentation.setLastName(userDto.apellido());
-        userRepresentation.setUsername(userDto.nombreUsuario());
-        userRepresentation.setEmail(userDto.email());
-        userRepresentation.setEmailVerified(true);
-        userRepresentation.setEnabled(true);
-
-        try (Response response = users.create(userRepresentation)) {
-
-            if (response.getStatus() == 201) {
-                String path = response.getLocation().getPath();
-                String userId = path.substring(path.lastIndexOf("/") + 1);
-
-                CredentialRepresentation credential = new CredentialRepresentation();
-                credential.setTemporary(false);
-                credential.setType(OAuth2Constants.PASSWORD);
-                credential.setValue(userDto.password());
-
-                users.get(userId).resetPassword(credential);
-
-                RealmResource realmResource = keycloakProvider.getRealmResource();
-
-                List<RoleRepresentation> roles = List.of(realmResource.roles().get("user").toRepresentation());
-
-                realmResource
-                        .users()
-                        .get(userId)
-                        .roles()
-                        .realmLevel()
-                        .add(roles);
-            } else if (response.getStatus() == 409) {
-                log.error("Ya está registrado este usuario");
-                throw new UserAlreadyExistsException("Ya está registrado este usuario");
-            } else {
-                log.error("Error al crear el usuario");
-                throw new UserCreationException("Error al crear el usuario");
-            }
-        }
+    public void createUser(@NonNull UserDto userDto) {
+        registrarUsuario(userDto.nombreUsuario(), userDto.nombre(), userDto.apellido(), userDto.email(), userDto.password(),
+                ROL_USER, "Ya está registrado este usuario", "Error al crear el usuario");
     }
 
-    @Override
-    public void createConductor(ConductorUsuarioDto userDto){
-
-        UsersResource users = keycloakProvider.getUserResource();
-
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setFirstName(userDto.getNombre());
-        userRepresentation.setLastName(userDto.getApellidos());
-        userRepresentation.setUsername(userDto.getNombreUsuario());
-        userRepresentation.setEmail(userDto.getEmail());
-        userRepresentation.setEmailVerified(true);
-        userRepresentation.setEnabled(true);
-
-        try (Response response = users.create(userRepresentation)) {
-
-            if (response.getStatus() == 201) {
-                String path = response.getLocation().getPath();
-                String userId = path.substring(path.lastIndexOf("/") + 1);
-
-                CredentialRepresentation credential = new CredentialRepresentation();
-                credential.setTemporary(false);
-                credential.setType(OAuth2Constants.PASSWORD);
-                credential.setValue(userDto.getPassword());
-
-                users.get(userId).resetPassword(credential);
-
-                RealmResource realmResource = keycloakProvider.getRealmResource();
-
-                List<RoleRepresentation> roles = List.of(realmResource.roles().get("driver").toRepresentation());
-
-                realmResource
-                        .users()
-                        .get(userId)
-                        .roles()
-                        .realmLevel()
-                        .add(roles);
-
-                String adminId = null;
-                try {
-                    org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-                    if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-                        adminId = auth.getName();
-                    }
-                } catch (Exception e) {
-                    log.warn("No se pudo obtener el adminId de la autenticación: {}", e.getMessage());
-                }
-
-                RegistroConductorIniciado evento = RegistroConductorIniciado.newBuilder()
-                        .setKeycloakId(userId)
-                        .setNombre(userDto.getNombre())
-                        .setApellido(userDto.getApellidos())
-                        .setDni(userDto.getDni())
-                        .setCategoriasLicencia(new ArrayList<>(userDto.getCategoriasLicencia()))
-                        .setAdminId(adminId)
-                        .build();
-                kafkaTemplate.send(TOPIC_INIT,userId,evento);
-            } else if (response.getStatus() == 409) {
-                log.error("Ya está registrado este usuario");
-                throw new UserAlreadyExistsException("Ya está registrado este usuario");
-            } else {
-                log.error("Error al crear el usuario");
-                throw new UserCreationException("Error al crear el usuario");
-            }
-        }
+    public void createConductor(ConductorUsuarioDto userDto) {
+        String keycloakId = registrarUsuario(userDto.nombreUsuario(), userDto.nombre(), userDto.apellidos(), userDto.email(), userDto.password(),
+                ROL_DRIVER, "Ya está registrado este usuario", "Error al crear el usuario");
+        publicarRegistroConductor(keycloakId, userDto);
     }
 
-    @Override
-    public void deleteUser (String userId){
+    public void deleteUser(String userId) {
         keycloakProvider.getUserResource()
                 .get(userId)
                 .remove();
     }
 
-    @Override
     public TokenResponse login(LoginDto loginDto) {
-        try {
+        return tokenClient.login(loginDto.email(), loginDto.password());
+    }
 
-            try(PooledKeycloak userKeycloak = keycloakProvider.getUserKeycloak(loginDto)) {
+    /**
+     * Flujo común de registro en Keycloak: crea el usuario (con credenciales embebidas, sin llamada
+     * adicional de resetPassword), asigna el rol y devuelve el id de Keycloak generado.
+     * Lanza {@link UserAlreadyExistsException} si el 201 no se completa o {@link UserCreationException}
+     * ante cualquier otro estado distinto de 201/409 (mensajes idénticos a los callers originales).
+     */
+    private String registrarUsuario(String nombreUsuario, String nombre, String apellido, String email,
+                                    String password, String rol, String mensajeDuplicado, String mensajeError) {
+        UserRepresentation usuario = construirUserRepresentation(nombreUsuario, nombre, apellido, email, password);
 
-                AccessTokenResponse tokenResponse = userKeycloak.getKeycloak().tokenManager().getAccessToken();
-
-                return new TokenResponse(
-                        tokenResponse.getToken(),
-                        tokenResponse.getRefreshToken(),
-                        tokenResponse.getExpiresIn(),
-                        tokenResponse.getRefreshExpiresIn()
-                );
+        try (Response response = keycloakProvider.getUserResource().create(usuario)) {
+            if (response.getStatus() == 201) {
+                String keycloakId = extraerUserId(response);
+                asignarRolRealm(keycloakId, rol);
+                return keycloakId;
             }
-        } catch (AuthenticationFailedException afe) {
-            throw afe;
-        } catch (NotAuthorizedException nae) {
-            log.error("Error inesperado durante el inicio de sesión: {}", nae.getMessage());
-            throw new AuthenticationFailedException("Credenciales inválidas: usuario o contraseña incorrectos");
-        } catch (ProcessingException pe) {
-            if (pe.getCause() instanceof ConnectException) {
-                throw new AuthenticationFailedException("Imposible conectar con el servidor de identidad");
+            if (response.getStatus() == 409) {
+                log.error(mensajeDuplicado);
+                throw new UserAlreadyExistsException(mensajeDuplicado);
             }
-            throw new AuthenticationFailedException(
-                    "Error de comunicación con el servidor de identidad: " + pe.getMessage()
-            );
-        } catch (Exception e) {
-            log.error("Error inesperado en login", e);
-            throw new AuthenticationFailedException("Error interno al iniciar sesión");
+            log.error(mensajeError);
+            throw new UserCreationException(mensajeError);
         }
+    }
+
+    private UserRepresentation construirUserRepresentation(String nombreUsuario, String nombre, String apellido,
+                                                           String email, String password) {
+        CredentialRepresentation credencial = new CredentialRepresentation();
+        credencial.setTemporary(false);
+        credencial.setType(OAuth2Constants.PASSWORD);
+        credencial.setValue(password);
+
+        UserRepresentation usuario = new UserRepresentation();
+        usuario.setFirstName(nombre);
+        usuario.setLastName(apellido);
+        usuario.setUsername(nombreUsuario);
+        usuario.setEmail(email);
+        usuario.setEmailVerified(true);
+        usuario.setEnabled(true);
+        usuario.setCredentials(List.of(credencial));
+        return usuario;
+    }
+
+    private String extraerUserId(Response response) {
+        String path = response.getLocation().getPath();
+        return path.substring(path.lastIndexOf('/') + 1);
+    }
+
+    private void asignarRolRealm(String keycloakId, String rol) {
+        RoleRepresentation representacionRol = keycloakProvider.obtenerRol(rol);
+        keycloakProvider.getRealmResource()
+                .users()
+                .get(keycloakId)
+                .roles()
+                .realmLevel()
+                .add(List.of(representacionRol));
+    }
+
+    private void publicarRegistroConductor(String keycloakId, ConductorUsuarioDto userDto) {
+        RegistroConductorIniciado evento = RegistroConductorIniciado.newBuilder()
+                .setKeycloakId(keycloakId)
+                .setNombre(userDto.nombre())
+                .setApellido(userDto.apellidos())
+                .setDni(userDto.dni())
+                .setCategoriasLicencia(new ArrayList<>(userDto.categoriasLicencia()))
+                .setAdminId(obtenerAdminId())
+                .build();
+        kafkaTemplate.send(TOPIC_INIT, keycloakId, evento);
+    }
+
+    private String obtenerAdminId() {
+        String adminId = null;
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                adminId = auth.getName();
+            }
+        } catch (Exception e) {
+            log.warn("No se pudo obtener el adminId de la autenticación: {}", e.getMessage());
+        }
+        return adminId;
     }
 }
