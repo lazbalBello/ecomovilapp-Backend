@@ -35,6 +35,18 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoResourceFoundException(org.springframework.web.servlet.resource.NoResourceFoundException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.NOT_FOUND.value(),
+                "Ruta no encontrada: el endpoint solicitado no existe", request), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<?> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException ex, WebRequest request) {
+        return new ResponseEntity<>(cuerpoBase(HttpStatus.METHOD_NOT_ALLOWED.value(),
+                "Método HTTP " + ex.getMethod() + " no soportado para este endpoint", request), HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handlerGeneralException(Exception ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

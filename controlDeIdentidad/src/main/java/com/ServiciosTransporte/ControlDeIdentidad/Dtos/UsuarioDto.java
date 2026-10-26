@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 
-public record UserDto(
+public record UsuarioDto(
 
         @NotBlank(message = "El nombre de usuario no puede estar en blanco")
         @Pattern(

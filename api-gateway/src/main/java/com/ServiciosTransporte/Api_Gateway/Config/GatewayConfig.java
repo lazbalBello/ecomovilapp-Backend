@@ -69,7 +69,49 @@ public class GatewayConfig {
         @Bean
         public RouteLocator routesLocator(RouteLocatorBuilder builder) {
                 return builder.routes()
-                                .route("Gestion", r -> r.path("/admin/**", "/api/v1/admin/**", "/api/v1/conductores/**")
+                                // Identidad — rutas específicas ANTES que la genérica de Gestion,
+                                // para que /api/v1/admin/usuarios/** no sea capturada por /api/v1/admin/**
+                                .route("registrarAdmin", r -> r.path("/api/v1/usuarios/admin")
+                                                .and()
+                                                .header("X-API-KEY", adminSecret)
+                                                .filters(f -> f
+                                                                .tokenRelay()
+                                                                .requestRateLimiter(config -> config
+                                                                                .setRateLimiter(authRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(controlDeIdentidadUri))
+
+                                .route("registrarDriver", r -> r.path("/api/v1/usuarios/conductores")
+                                                .and()
+                                                .header("X-API-KEY", adminSecret)
+                                                .filters(f -> f
+                                                                .tokenRelay()
+                                                                .requestRateLimiter(config -> config
+                                                                                .setRateLimiter(authRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(controlDeIdentidadUri))
+
+                                .route("registrarUser", r -> r.path("/api/v1/usuarios")
+                                                .and()
+                                                .header("X-API-KEY", userSecret)
+                                                .filters(f -> f
+                                                                .tokenRelay()
+                                                                .requestRateLimiter(config -> config
+                                                                                .setRateLimiter(authRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(controlDeIdentidadUri))
+
+                                .route("controlDeIdentidad", r -> r
+                                                .path("/api/v1/auth/**", "/api/v1/admin/usuarios/**",
+                                                        "/api/v1/usuarios/me", "/api/v1/usuarios/me/**")
+                                                .filters(f -> f
+                                                                .tokenRelay()
+                                                                .requestRateLimiter(config -> config
+                                                                                .setRateLimiter(authRateLimiter)
+                                                                                .setKeyResolver(ipKeyResolver)))
+                                                .uri(controlDeIdentidadUri))
+
+                                .route("Gestion", r -> r.path("/api/v1/admin/**", "/api/v1/conductores/**")
                                                 .filters(f -> f
                                                                 .tokenRelay()
                                                                 .requestRateLimiter(config -> config
@@ -94,47 +136,8 @@ public class GatewayConfig {
                                                                                 .setKeyResolver(ipKeyResolver)))
                                                 .uri(dicoveriUri))
 
-                                .route("registrarAdmin", r -> r.path("/auth/registrar-admin")
-                                                .and()
-                                                .header("X-API-KEY", adminSecret)
-                                                .filters(f -> f
-                                                                .tokenRelay()
-                                                                .requestRateLimiter(config -> config
-                                                                                .setRateLimiter(authRateLimiter)
-                                                                                .setKeyResolver(ipKeyResolver)))
-                                                .uri(controlDeIdentidadUri))
-
-                                .route("registrarDriver", r -> r.path("/auth/registrar-driver")
-                                                .and()
-                                                .header("X-API-KEY", adminSecret)
-                                                .filters(f -> f
-                                                                .tokenRelay()
-                                                                .requestRateLimiter(config -> config
-                                                                                .setRateLimiter(authRateLimiter)
-                                                                                .setKeyResolver(ipKeyResolver)))
-                                                .uri(controlDeIdentidadUri))
-
-                                .route("registrarUser", r -> r.path("/auth/registrar-user")
-                                                .and()
-                                                .header("X-API-KEY", userSecret)
-                                                .filters(f -> f
-                                                                .tokenRelay()
-                                                                .requestRateLimiter(config -> config
-                                                                                .setRateLimiter(authRateLimiter)
-                                                                                .setKeyResolver(ipKeyResolver)))
-                                                .uri(controlDeIdentidadUri))
-
-                                .route("controlDeIdentidad", r -> r
-                                                .path("/auth/login", "/usuarios/**", "/auth/refrescar", "/auth/guest-token")
-                                                .filters(f -> f
-                                                                .tokenRelay()
-                                                                .requestRateLimiter(config -> config
-                                                                                .setRateLimiter(authRateLimiter)
-                                                                                .setKeyResolver(ipKeyResolver)))
-                                                .uri(controlDeIdentidadUri))
-
                                 .route("distribucionTelemetriaUri", r -> r
-                                                .path("/telemetria/v1/estado/cambiar")
+                                                .path("/api/v1/telemetria/**")
                                                 .filters(f -> f
                                                                 .tokenRelay()
                                                                 .requestRateLimiter(config -> config
@@ -142,7 +145,7 @@ public class GatewayConfig {
                                                                                 .setKeyResolver(ipKeyResolver)))
                                                 .uri(distribucionTelemetriaUri))
 
-                                .route("GestionPublic", r -> r.path("/public/**", "/api/v1/publico/**")
+                                .route("GestionPublic", r -> r.path("/api/v1/publico/**")
                                                 .filters(f -> f
                                                                 .requestRateLimiter(config -> config
                                                                                 .setRateLimiter(publicRateLimiter)

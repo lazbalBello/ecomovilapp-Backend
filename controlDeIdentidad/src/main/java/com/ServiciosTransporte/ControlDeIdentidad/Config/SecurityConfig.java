@@ -4,6 +4,7 @@ import lombok.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,13 +30,18 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/auth/registrar-user","/auth/login", "/auth/refrescar"
-                                ,"/auth/registrar-admin", "/auth/guest-token")
+                        req.requestMatchers("/api/v1/auth/login", "/api/v1/auth/refrescar",
+                                        "/api/v1/auth/guest-token", "/api/v1/auth/recuperar-password")
                                 .permitAll()
-                                .requestMatchers("/auth/registrar-driver")
+                                .requestMatchers(HttpMethod.POST, "/api/v1/usuarios")
+                                .permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/usuarios/admin",
+                                        "/api/v1/usuarios/conductores")
                                 .hasRole("admin")
-                                .requestMatchers("/usuarios/**")
+                                .requestMatchers("/api/v1/admin/usuarios/**")
                                 .hasRole("admin")
+                                .requestMatchers("/api/v1/usuarios/me/**")
+                                .authenticated()
                                 .anyRequest()
                                 .authenticated()
                 )

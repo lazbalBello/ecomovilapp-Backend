@@ -13,15 +13,16 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/telemetria/v1/estado")
+@RequestMapping("/api/v1/telemetria")
 @RequiredArgsConstructor
 public class ControladorEstado {
 
     private final ServicioDistribucionTelemetria servicioDistribucionTelemetria;
 
-    @PostMapping("/cambiar")
+    /** Actualiza manualmente el estado del vehículo del conductor autenticado. */
+    @PostMapping("/estado")
     @PreAuthorize("hasRole('driver')")
-    public Mono<ResponseEntity<Void>> cambiarEstado(@RequestBody @Valid EstadoDto cambioDto) {
+    public Mono<ResponseEntity<Void>> actualizarEstado(@RequestBody @Valid EstadoDto cambioDto) {
         return servicioDistribucionTelemetria.actualizarEstadoManual(cambioDto)
                 .then(Mono.just(ResponseEntity.ok().build()));
     }

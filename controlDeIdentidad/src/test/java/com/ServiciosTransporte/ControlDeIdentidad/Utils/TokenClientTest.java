@@ -23,6 +23,7 @@ class TokenClientTest {
     private static HttpServer servidor;
     private static TokenClient tokenClient;
     private static int statusToken = 200;
+    private static byte[] cuerpoCustom = null;
 
     @BeforeAll
     static void levantarServidorFalso() throws IOException {
@@ -36,7 +37,7 @@ class TokenClientTest {
 
         servidor = HttpServer.create(new InetSocketAddress(0), 0);
         servidor.createContext("/realms/test/protocol/openid-connect/token", exchange -> {
-            byte[] cuerpo = statusToken == 200 ? cuerpoOk : cuerpo401;
+            byte[] cuerpo = cuerpoCustom != null ? cuerpoCustom : (statusToken == 200 ? cuerpoOk : cuerpo401);
             exchange.getResponseHeaders().add("Content-Type", "application/json");
             exchange.sendResponseHeaders(statusToken, cuerpo.length);
             exchange.getResponseBody().write(cuerpo);
@@ -69,11 +70,25 @@ class TokenClientTest {
     @DisplayName("login con 401 lanza el mensaje original de credenciales inválidas")
     void loginInvalido() {
         statusToken = 401;
+        cuerpoCustom = null;
 
         AuthenticationFailedException excepcion = assertThrows(AuthenticationFailedException.class,
                 () -> tokenClient.login("a.perez@x.com", "pass-incorrecta"));
 
         assertEquals("Credenciales inválidas: usuario o contraseña incorrectos", excepcion.getMessage());
+    }
+
+    @Test
+    @DisplayName("login con cuenta deshabilitada (400 Account disabled) informa cuenta deshabilitada")
+    void loginConCuentaDeshabilitada() {
+        statusToken = 400;
+        cuerpoCustom = "{\"error\":\"invalid_grant\",\"error_description\":\"Account disabled\"}".getBytes();
+
+        AuthenticationFailedException excepcion = assertThrows(AuthenticationFailedException.class,
+                () -> tokenClient.login("a.perez@x.com", "pass"));
+
+        assertEquals("La cuenta de usuario está deshabilitada", excepcion.getMessage());
+        cuerpoCustom = null;
     }
 
     @Test

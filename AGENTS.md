@@ -26,15 +26,25 @@ Sincronización de Contexto: El agente debe actualizar este y cualquier archivo 
 - Arquitectura: Microservicios
 - Infraestructura: 
      
+    Edge Proxy (Traefik v3.0):
+
+        Puertos: 80 (HTTP / Web), 8080 (Dashboard), 5001 (TCP Balanceado para hardware GPS).
+
+        Rutas HTTP:
+          - PathPrefix(`/`): Enruta hacia el `api-gateway` (puerto interno 8080). Todas las peticiones de los clientes frontend entran por el puerto 80/443 de Traefik.
+          - Host(`auth.localhost`) / Subdominio: Enruta hacia `keycloak` (puerto interno 9090) para el flujo de pantallas web de Keycloak (ej. cambio de contraseñas por correo via Action Token).
+
     Keycloak (v26.2.4):
 
         Imagen: quay.io/keycloak/keycloak:26.2.4
 
-        Puerto: 9090 (Configurado vía KC_HTTP_PORT).
+        Puerto interno: 9090 (Configurado vía KC_HTTP_PORT). En producción se accede a través del subdominio en Traefik (ej. auth.ecomoviles.cu) sin exponer el puerto 9090 al exterior.
 
         Base de Datos: PostgreSQL en puerto 5433 (db_keycloak).
 
         Modo: start-dev.
+
+        Gestión de Contraseñas por Correo: Los enlaces temporales enviados por email utilizan la URL pública configurada (`KC_HOSTNAME`).
 
     Kafka (v7.7.0 - Modo KRaft):
 

@@ -1,15 +1,24 @@
 package com.ServiciosTransporte.ControlDeIdentidad.Servicios;
 
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.ActualizarPerfilDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.AdminActualizarUsuarioDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.CambiarPasswordDto;
 import com.ServiciosTransporte.ControlDeIdentidad.Dtos.ConductorUsuarioDto;
 import com.ServiciosTransporte.ControlDeIdentidad.Dtos.LoginDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.MensajeRespuestaDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.PerfilUsuarioDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.RecuperarPasswordDto;
 import com.ServiciosTransporte.ControlDeIdentidad.Dtos.TokenResponse;
-import com.ServiciosTransporte.ControlDeIdentidad.Dtos.UserDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.UsuarioDto;
 import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.AuthenticationFailedException;
+import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.OperationNotAllowedException;
 import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserAlreadyExistsException;
 import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserCreationException;
+import com.ServiciosTransporte.ControlDeIdentidad.Exceptions.Personalizadas.UserNotFoundException;
 import com.ServiciosTransporte.ControlDeIdentidad.Utils.KeycloakProvider;
 import com.ServiciosTransporte.ControlDeIdentidad.Utils.TokenClient;
 import com.servicioTransporte.flota.eventos.conductor.registro.RegistroConductorIniciado;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -103,7 +112,7 @@ class ServicioUsuariosTest {
     void createAdminCreaUsuarioYAsignaRol() {
         mockearRegistroExitoso("admin");
 
-        servicioUsuarios.createAdmin(new UserDto("a.gomez", "Alejandro", "Gómez", "a.gomez@x.com", "pass123"));
+        servicioUsuarios.createAdmin(new UsuarioDto("a.gomez", "Alejandro", "Gómez", "a.gomez@x.com", "pass123"));
 
         ArgumentCaptor<UserRepresentation> usuario = ArgumentCaptor.forClass(UserRepresentation.class);
         verify(usersResource).create(usuario.capture());
@@ -130,7 +139,7 @@ class ServicioUsuariosTest {
     void createUserAsignaRolUser() {
         mockearRegistroExitoso("user");
 
-        servicioUsuarios.createUser(new UserDto("u.nuevo", "Única", "Nuñez", "u.nuevo@x.com", "pass123"));
+        servicioUsuarios.createUser(new UsuarioDto("u.nuevo", "Única", "Nuñez", "u.nuevo@x.com", "pass123"));
 
         verify(keycloakProvider).obtenerRol("user");
         verify(roleScopeResource).add(any());
@@ -181,7 +190,7 @@ class ServicioUsuariosTest {
         when(usersResource.create(any(UserRepresentation.class))).thenReturn(respuesta);
 
         UserAlreadyExistsException excepcion = assertThrows(UserAlreadyExistsException.class,
-                () -> servicioUsuarios.createAdmin(new UserDto("a.gomez", "A", "G", "a@x.com", "pass123")));
+                () -> servicioUsuarios.createAdmin(new UsuarioDto("a.gomez", "A", "G", "a@x.com", "pass123")));
 
         assertEquals("Ya está registrado este administrador", excepcion.getMessage());
         verify(kafkaTemplate, never()).send(anyString(), any(), any());
@@ -195,7 +204,7 @@ class ServicioUsuariosTest {
         when(usersResource.create(any(UserRepresentation.class))).thenReturn(respuesta);
 
         UserCreationException excepcion = assertThrows(UserCreationException.class,
-                () -> servicioUsuarios.createUser(new UserDto("u.nuevo", "U", "N", "u@x.com", "pass123")));
+                () -> servicioUsuarios.createUser(new UsuarioDto("u.nuevo", "U", "N", "u@x.com", "pass123")));
 
         assertEquals("Error al crear el usuario", excepcion.getMessage());
     }
@@ -238,5 +247,170 @@ class ServicioUsuariosTest {
         ConductorUsuarioDto explicitaFalse = new ConductorUsuarioDto(
                 "u", "p", "e@x.com", "12345678901", "N", "A", List.of("A"), false);
         assertFalse(explicitaFalse.disponibilidad());
+    }
+
+    @Test
+    @DisplayName("obtenerPerfil devuelve el PerfilUsuarioDto con sus datos y roles")
+    void obtenerPerfilExitoso() {
+        UserRepresentation rep = new UserRepresentation();
+        rep.setId("id-123");
+        rep.setUsername("juan");
+        rep.setEmail("juan@x.com");
+        rep.setFirstName("Juan");
+        rep.setLastName("Perez");
+        rep.setEnabled(true);
+
+        RoleRepresentation rol = new RoleRepresentation();
+        rol.setName("user");
+
+        when(keycloakProvider.getUserResource()).thenReturn(usersResource);
+        when(usersResource.get("id-123")).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(rep);
+        when(userResource.roles()).thenReturn(rolesResourceUsuario);
+        when(rolesResourceUsuario.realmLevel()).thenReturn(roleScopeResource);
+        when(roleScopeResource.listAll()).thenReturn(List.of(rol));
+
+        PerfilUsuarioDto perfil = servicioUsuarios.obtenerPerfil("id-123");
+
+        assertEquals("id-123", perfil.id());
+        assertEquals("juan", perfil.username());
+        assertEquals("juan@x.com", perfil.email());
+        assertEquals("Juan", perfil.nombre());
+        assertEquals("Perez", perfil.apellido());
+        assertTrue(perfil.habilitado());
+        assertEquals(List.of("user"), perfil.roles());
+    }
+
+    @Test
+    @DisplayName("actualizarPerfil actualiza nombre y apellido en Keycloak")
+    void actualizarPerfilExitoso() {
+        UserRepresentation rep = new UserRepresentation();
+        rep.setId("id-123");
+        rep.setFirstName("Viejo");
+        rep.setLastName("Apellido");
+
+        when(keycloakProvider.getUserResource()).thenReturn(usersResource);
+        when(usersResource.get("id-123")).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(rep);
+
+        servicioUsuarios.actualizarPerfil("id-123", new ActualizarPerfilDto("Nuevo", "Cambiado"));
+
+        assertEquals("Nuevo", rep.getFirstName());
+        assertEquals("Cambiado", rep.getLastName());
+        verify(userResource).update(rep);
+    }
+
+    @Test
+    @DisplayName("actualizarUsuarioPorAdmin actualiza nombre, apellido, email y enabled")
+    void actualizarUsuarioPorAdminExitoso() {
+        UserRepresentation rep = new UserRepresentation();
+        rep.setId("id-456");
+
+        when(keycloakProvider.getUserResource()).thenReturn(usersResource);
+        when(usersResource.get("id-456")).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(rep);
+
+        servicioUsuarios.actualizarUsuarioPorAdmin("id-456",
+                new AdminActualizarUsuarioDto("AdminN", "AdminA", "nuevo@x.com", false));
+
+        assertEquals("AdminN", rep.getFirstName());
+        assertEquals("AdminA", rep.getLastName());
+        assertEquals("nuevo@x.com", rep.getEmail());
+        assertFalse(rep.isEnabled());
+        verify(userResource).update(rep);
+    }
+
+    @Test
+    @DisplayName("cambiarPassword valida password actual y resetea credencial si es correcto")
+    void cambiarPasswordExitoso() {
+        UserRepresentation rep = new UserRepresentation();
+        rep.setUsername("usuario.test");
+
+        when(keycloakProvider.getUserResource()).thenReturn(usersResource);
+        when(usersResource.get("id-123")).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(rep);
+        when(tokenClient.login("usuario.test", "actual123"))
+                .thenReturn(new TokenResponse("token", "refresh", 300L, 1800L));
+
+        servicioUsuarios.cambiarPassword("id-123", new CambiarPasswordDto("actual123", "nuevoPass456"));
+
+        verify(userResource).resetPassword(any());
+    }
+
+    @Test
+    @DisplayName("cambiarPassword lanza AuthenticationFailedException si password actual es incorrecto")
+    void cambiarPasswordFallaPasswordActualIncorrecta() {
+        UserRepresentation rep = new UserRepresentation();
+        rep.setUsername("usuario.test");
+
+        when(keycloakProvider.getUserResource()).thenReturn(usersResource);
+        when(usersResource.get("id-123")).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(rep);
+        when(tokenClient.login("usuario.test", "malo"))
+                .thenThrow(new AuthenticationFailedException("Error"));
+
+        AuthenticationFailedException ex = assertThrows(AuthenticationFailedException.class,
+                () -> servicioUsuarios.cambiarPassword("id-123", new CambiarPasswordDto("malo", "nuevoPass456")));
+
+        assertEquals("La contraseña actual es incorrecta", ex.getMessage());
+        verify(userResource, never()).resetPassword(any());
+    }
+
+    @Test
+    @DisplayName("eliminarCuentaPropia permite borrar a usuario con rol estándar")
+    void eliminarCuentaPropiaExitoso() {
+        UserRepresentation rep = new UserRepresentation();
+        RoleRepresentation rol = new RoleRepresentation();
+        rol.setName("user");
+
+        when(keycloakProvider.getUserResource()).thenReturn(usersResource);
+        when(usersResource.get("id-123")).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(rep);
+        when(userResource.roles()).thenReturn(rolesResourceUsuario);
+        when(rolesResourceUsuario.realmLevel()).thenReturn(roleScopeResource);
+        when(roleScopeResource.listAll()).thenReturn(List.of(rol));
+
+        servicioUsuarios.eliminarCuentaPropia("id-123");
+
+        verify(userResource).remove();
+    }
+
+    @Test
+    @DisplayName("eliminarCuentaPropia lanza OperationNotAllowedException si es admin o driver")
+    void eliminarCuentaPropiaFallaParaAdminODriver() {
+        UserRepresentation rep = new UserRepresentation();
+        RoleRepresentation rolAdmin = new RoleRepresentation();
+        rolAdmin.setName("admin");
+
+        when(keycloakProvider.getUserResource()).thenReturn(usersResource);
+        when(usersResource.get("admin-id")).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(rep);
+        when(userResource.roles()).thenReturn(rolesResourceUsuario);
+        when(rolesResourceUsuario.realmLevel()).thenReturn(roleScopeResource);
+        when(roleScopeResource.listAll()).thenReturn(List.of(rolAdmin));
+
+        assertThrows(OperationNotAllowedException.class,
+                () -> servicioUsuarios.eliminarCuentaPropia("admin-id"));
+
+        verify(userResource, never()).remove();
+    }
+
+    @Test
+    @DisplayName("solicitarRecuperacionPassword dispara executeActionsEmail si el usuario existe")
+    void solicitarRecuperacionPasswordUsuarioExiste() {
+        UserRepresentation rep = new UserRepresentation();
+        rep.setId("id-recup");
+
+        when(keycloakProvider.getRealmResource()).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.searchByEmail("correo@x.com", true)).thenReturn(List.of(rep));
+        when(keycloakProvider.getUserResource()).thenReturn(usersResource);
+        when(usersResource.get("id-recup")).thenReturn(userResource);
+
+        MensajeRespuestaDto respuesta = servicioUsuarios.solicitarRecuperacionPassword(
+                new RecuperarPasswordDto("correo@x.com"));
+
+        assertNotNull(respuesta.mensaje());
+        verify(userResource).executeActionsEmail(List.of("UPDATE_PASSWORD"));
     }
 }

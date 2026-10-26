@@ -57,14 +57,25 @@ public class TokenClient {
                     .uri("/token")
                     .bodyValue(formularioLogin(username, password))
                     .retrieve()
-                    .onStatus(status -> status.is4xxClientError(), resp -> {
-                        if (resp.statusCode().value() == HttpStatus.UNAUTHORIZED.value()) {
-                            return Mono.error(new AuthenticationFailedException(
-                                    "Credenciales inválidas: usuario o contraseña incorrectos"));
-                        }
-                        return Mono.error(new AuthenticationFailedException(
-                                "Error de comunicación con el servidor de identidad: " + resp.statusCode()));
-                    })
+                    .onStatus(status -> status.is4xxClientError(), resp ->
+                            resp.bodyToMono(String.class)
+                                    .defaultIfEmpty("")
+                                    .flatMap(body -> {
+                                        if (body.contains("Account disabled")) {
+                                            return Mono.error(new AuthenticationFailedException(
+                                                    "La cuenta de usuario está deshabilitada"));
+                                        }
+                                        if (body.contains("User is temporarily locked out")) {
+                                            return Mono.error(new AuthenticationFailedException(
+                                                    "La cuenta está temporalmente bloqueada"));
+                                        }
+                                        return Mono.error(new AuthenticationFailedException(
+                                                "Credenciales inválidas: usuario o contraseña incorrectos"));
+                                    })
+                    )
+                    .onStatus(status -> status.is5xxServerError(), resp ->
+                            Mono.error(new AuthenticationFailedException("Imposible conectar con el servidor de identidad"))
+                    )
                     .bodyToMono(AccessTokenResponse.class)
                     .block();
 

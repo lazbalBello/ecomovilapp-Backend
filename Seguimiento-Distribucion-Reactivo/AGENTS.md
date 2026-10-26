@@ -12,6 +12,7 @@ Consumir telemetría desde Kafka, aplicar filtros de negocio, persistir estados 
   - Límite de actualización (throttle): máximo 1 actualización cada 2 segundos por vehículo.
 - Caché: almacenar estado y última ubicación de vehículos en Redis para lecturas de baja latencia (usar Redis reactivo).
 - WebSockets: emitir ubicaciones públicamente (sin autenticación) mediante configuración reactiva.
+- Parada manual del estado: `ControladorEstado` expone `POST /api/v1/telemetria/estado` (rol `driver`, JWT). NO usar `/api/v1/conductores/**` (ese prefijo lo captura la ruta de `Gestion` en el gateway) ni verbos en la URL.
 - Contratos: deserializar eventos de Kafka usando las clases generadas por `eventos-flota`.
 
 ## Dependencias Principales
