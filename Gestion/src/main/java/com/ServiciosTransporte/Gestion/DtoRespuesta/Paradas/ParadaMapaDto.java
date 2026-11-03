@@ -4,6 +4,7 @@ public record ParadaMapaDto(
         Long id,
         String nombre,
         double latitud,
-        double longitud
+        double longitud,
+        Long rutaID
 ) {
 }
