@@ -23,6 +23,7 @@ public interface ParadaMapper {
     @Mapping(target = "ruta", expression = "java(parada.getRuta().getNombre())")
     ParadaLiteDto toParadaLiteDto(Parada parada);
 
+    @Mapping(target = "rutaID", expression = "java(parada.getRuta() != null ? parada.getRuta().getId() : null)")
     ParadaMapaDto toParadaMapaDto(Parada parada);
 
     ParadaSugerenciaDto toParadaSugerenciaDto(Parada parada);
