@@ -1,37 +1,39 @@
 package com.ServiciosTransporte.Gestion.Dto;
 
-import jakarta.validation.constraints.*;
-import lombok.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
-import java.io.Serializable;
+public record VehiculoDto(
+        /** Poblado al retornar la entidad guardada; ignorado al mapear DTO→Entidad. */
+        Long id,
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class VehiculoDto implements Serializable {
+        @NotBlank(message = "Se requiere la matrícula")
+        @Pattern(regexp = "^[A-Za-z]\\d{6}$",
+                message = "Formato de matrícula no válido")
+        String matricula,
 
-    /** Poblado al retornar la entidad guardada; ignorado al mapear DTO→Entidad. */
-    private Long id;
+        String gpsId,
 
-    @NotBlank(message = "Se requiere la matrícula")
-    @Pattern( regexp = "^[A-Za-z]\\d{6}$",
-            message = "Formato de matrícula no válido")
-    private String matricula;
+        @NotNull(message = "Se requiere la capacidad de personas")
+        @Min(value = 1, message = "La capacidad de personas debe ser al menos 1")
+        Integer capacidadPersonas,
 
-    private String gpsId;
+        @NotBlank(message = "Se requiere el modelo")
+        String modelo,
 
-    @NotNull(message = "Se requiere la capacidad de personas")
-    @Min(value = 1, message = "La capacidad de personas debe ser al menos 1")
-    private Integer capacidadPersonas;
+        @NotBlank(message = "Se requiere la marca")
+        String marca,
 
-    @NotBlank(message = "Se requiere el modelo")
-    private String modelo;
+        @NotBlank(message = "Se requiere el tipo de bateria")
+        String tipoBateria,
 
-    @NotBlank(message = "Se requiere la marca")
-    private String marca;
-
-    @NotBlank(message = "Se requiere el tipo de bateria")
-    private String tipoBateria;
-
-    private String estado = "ACTIVO";
+        String estado
+) {
+    public VehiculoDto {
+        if (estado == null) {
+            estado = "ACTIVO";
+        }
+    }
 }

@@ -1,7 +1,7 @@
 package com.ServiciosTransporte.Gestion.Servicios;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoLiteDto;
-import com.ServiciosTransporte.Gestion.MappersResponse.VehiculoLiteDtoMapper;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Vehiculos.VehiculoLiteDto;
+import com.ServiciosTransporte.Gestion.Mappers.VehiculoMapper;
 import com.ServiciosTransporte.Gestion.Modelos.Ruta;
 import com.ServiciosTransporte.Gestion.Modelos.Vehiculo;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioRuta;
@@ -18,7 +18,7 @@ public class ServicioAsignarRuta {
 
     private final IRepositorioRuta repositorioRuta;
     private final IRepositorioVehiculo repositorioVehiculo;
-    private final VehiculoLiteDtoMapper vehiculoLiteDtoMapper;
+    private final VehiculoMapper vehiculoMapper;
 
     @Transactional
     @CacheEvict(value = "gestion:resumen-activos", allEntries = true)
@@ -31,6 +31,6 @@ public class ServicioAsignarRuta {
         if(!ruta.getVehiculosAsignados().contains(vehiculo))
             ruta.getVehiculosAsignados().add(vehiculo);
         Vehiculo actualizado = repositorioVehiculo.save(vehiculo);
-        return  vehiculoLiteDtoMapper.toVehiculoLiteDto(actualizado);
+        return  vehiculoMapper.toVehiculoLiteDto(actualizado);
     }
 }

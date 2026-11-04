@@ -1,15 +1,20 @@
 package com.ServiciosTransporte.Gestion.Mappers;
 
+import com.ServiciosTransporte.Gestion.Config.CentralMapperConfig;
 import com.ServiciosTransporte.Gestion.Dto.ConductorDto;
 import com.ServiciosTransporte.Gestion.Dto.ConductorUsuarioDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Conductores.ConductorLiteDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Conductores.ConductorSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoActualizacion.ConductorUpdateDto;
 import com.ServiciosTransporte.Gestion.Modelos.Conductor;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(config = CentralMapperConfig.class, uses = {VehiculoAsignacionMapper.class})
 public interface ConductorMapper {
-    ConductorMapper mapper = Mappers.getMapper(ConductorMapper.class);
 
     ConductorDto toConductorDto(Conductor conductor);
 
@@ -18,4 +23,13 @@ public interface ConductorMapper {
 
     @Mapping(target = "id", ignore = true)
     Conductor toConductor(ConductorUsuarioDto conductorUsuarioDto);
+
+    ConductorLiteDto toConductorLiteDto(Conductor conductor);
+
+    @Mapping(target = "nombre", expression = "java(conductor.getNombre() + \" \" + conductor.getApellidos())")
+    ConductorSugerenciaDto toConductorSugerenciaDto(Conductor conductor);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "categoriasLicencia", ignore = true)
+    void updateConductorFromDto(ConductorUpdateDto updateDto, @MappingTarget Conductor conductor);
 }

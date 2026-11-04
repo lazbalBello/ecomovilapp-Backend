@@ -18,9 +18,6 @@ public class TelemetriaJsonDto {
     private Double batteryLevel;
     private Long timestamp;
     private Map<String, String> additionalData = new HashMap<>();
-
-    // Variables extras no tipadas de traccar (sirven para identificar eventos /
-    // desconexiones)
     private Map<String, Object> rawFields = new HashMap<>();
 
     @JsonAnySetter

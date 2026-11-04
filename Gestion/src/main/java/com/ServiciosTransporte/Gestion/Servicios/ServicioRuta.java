@@ -3,19 +3,15 @@ package com.ServiciosTransporte.Gestion.Servicios;
 import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
 import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.RutaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaSugerenciaDto;
-import com.ServiciosTransporte.Gestion.DtoUpdate.RutaUpdateDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Rutas.RutaLiteDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Rutas.RutaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Rutas.RutaSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoActualizacion.RutaUpdateDto;
 import com.ServiciosTransporte.Gestion.Mappers.RutaMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.RutaLiteDtoMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.RutaMapaDtoMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.RutaSugerenciaDtoMapper;
 import com.ServiciosTransporte.Gestion.Modelos.Ruta;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioParada;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioRuta;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculo;
-import com.ServiciosTransporte.Gestion.MappersUpdate.RutaUpdateMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +31,8 @@ public class ServicioRuta {
 
     private final IRepositorioRuta repositorioRuta;
     private final RutaMapper rutaMapper;
-    private final RutaLiteDtoMapper rutaLiteDtoMapper;
-    private final RutaSugerenciaDtoMapper rutaSugerenciaDtoMapper;
-    private final RutaUpdateMapper rutaUpdateMapper;
     private final IRepositorioParada repositorioParada;
     private final IRepositorioVehiculo repositorioVehiculo;
-    private final RutaMapaDtoMapper rutaMapaDtoMapper;
 
     @Transactional
     @Auditable(tabla = "ruta", operacion = TipoOperacion.CREACION, entidad = Ruta.class)
@@ -58,27 +50,27 @@ public class ServicioRuta {
         Ruta ruta = repositorioRuta.findById(id)
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Ruta con id " + id + " no encontrada"));
-        return rutaLiteDtoMapper.toRutaDtoResponse(ruta);
+        return rutaMapper.toRutaDtoResponse(ruta);
    }
 
    public List<RutaSugerenciaDto> sugerirRuta(String nombre){
        List<Ruta> rutas = repositorioRuta.findByNombreContainingIgnoreCase(nombre);
        return  rutas.stream()
-               .map(rutaSugerenciaDtoMapper::toRutaSugerenciaDto)
+               .map(rutaMapper::toRutaSugerenciaDto)
                .collect(Collectors.toList());
    }
 
     public List<RutaLiteDto> listarTodo(){
         List<Ruta> rutas = repositorioRuta.findAll();
         return rutas.stream()
-                .map(rutaLiteDtoMapper::toRutaDtoResponse)
+                .map(rutaMapper::toRutaDtoResponse)
                 .collect(Collectors.toList());
     }
 
     public List<RutaMapaDto> rutasParaMapa(){
         List<Ruta> rutas = repositorioRuta.findAll();
         return rutas.stream()
-                .map(rutaMapaDtoMapper::toRutaMapaDto)
+                .map(rutaMapper::toRutaMapaDto)
                 .collect(Collectors.toList());
     }
 
@@ -88,16 +80,16 @@ public class ServicioRuta {
     public RutaLiteDto actualizarRuta(Long id, RutaUpdateDto updateDto){
         Ruta ruta = repositorioRuta.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró la ruta con el id " + id));
-        rutaUpdateMapper.updateRutaFromDto(updateDto, ruta);
+        rutaMapper.updateRutaFromDto(updateDto, ruta);
         Ruta actualizada = repositorioRuta.save(ruta);
-        return rutaLiteDtoMapper.toRutaDtoResponse(actualizada);
+        return rutaMapper.toRutaDtoResponse(actualizada);
     }
 
     /** Devuelve todas las rutas que han sido eliminadas (soft delete). */
     @Transactional
     public List<RutaLiteDto> listarEliminadas(){
         return repositorioRuta.findAllEliminadas().stream()
-                .map(rutaLiteDtoMapper::toRutaDtoResponse)
+                .map(rutaMapper::toRutaDtoResponse)
                 .collect(Collectors.toList());
     }
 

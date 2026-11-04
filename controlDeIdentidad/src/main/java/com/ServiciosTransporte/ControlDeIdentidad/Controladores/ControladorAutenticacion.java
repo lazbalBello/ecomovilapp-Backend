@@ -1,11 +1,14 @@
 package com.ServiciosTransporte.ControlDeIdentidad.Controladores;
 
-import com.ServiciosTransporte.ControlDeIdentidad.Dtos.*;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.LoginDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.MensajeRespuestaDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.RecuperarPasswordDto;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.RefreshToken;
+import com.ServiciosTransporte.ControlDeIdentidad.Dtos.TokenResponse;
 import com.ServiciosTransporte.ControlDeIdentidad.Servicios.ServicioUsuarios;
 import com.ServiciosTransporte.ControlDeIdentidad.Utils.TokenClient;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,48 +17,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class ControladorAutenticacion {
 
-    @Autowired
-    private ServicioUsuarios servicioUsuarios;
+    private final ServicioUsuarios servicioUsuarios;
+    private final TokenClient tokenClient;
 
-    @Autowired
-    private TokenClient tokenClient;
-
-    @PostMapping("/registrar-admin")
-    public ResponseEntity<Void> registrarAdmin(@Valid @RequestBody UserDto userDto){
-        servicioUsuarios.createAdmin(userDto);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @PostMapping("/registrar-driver")
-    public ResponseEntity<Void> registrarConductor(@Valid @RequestBody ConductorUsuarioDto userDto){
-        servicioUsuarios.createConductor(userDto);
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
-    }
-
-    @PostMapping("/registrar-user")
-    public ResponseEntity<Void> registrarUser(@Valid @RequestBody UserDto userDto){
-        servicioUsuarios.createUser(userDto);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
+    /** Autentica al usuario con sus credenciales y devuelvo los tokens de acceso. */
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginDto loginDto){
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginDto loginDto) {
         TokenResponse response = servicioUsuarios.login(loginDto);
         return ResponseEntity.ok(response);
     }
 
+    /** Renueva los tokens entregando un refresh token válido. */
     @PostMapping("/refrescar")
-    public ResponseEntity<TokenResponse> refrescar(@Valid @RequestBody RefreshToken token){
-        TokenResponse newTokens = tokenClient.refresh(token.refreshToken());
-        return ResponseEntity.ok(newTokens);
+    public ResponseEntity<TokenResponse> refrescar(@Valid @RequestBody RefreshToken token) {
+        return ResponseEntity.ok(tokenClient.refresh(token.refreshToken()));
     }
 
+    /** Entrega un token de lectura para clientes públicos (visualización del mapa). */
     @GetMapping("/guest-token")
-    public ResponseEntity<TokenResponse> guestToken(){
-        TokenResponse guestToken = tokenClient.getGuestToken();
-        return ResponseEntity.ok(guestToken);
+    public ResponseEntity<TokenResponse> guestToken() {
+        return ResponseEntity.ok(tokenClient.getGuestToken());
+    }
+
+    /** Solicita el envío de un correo para restablecer la contraseña a través de Keycloak. */
+    @PostMapping("/recuperar-password")
+    public ResponseEntity<MensajeRespuestaDto> recuperarPassword(@Valid @RequestBody RecuperarPasswordDto dto) {
+        MensajeRespuestaDto respuesta = servicioUsuarios.solicitarRecuperacionPassword(dto);
+        return ResponseEntity.ok(respuesta);
     }
 }

@@ -1,12 +1,12 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
 import com.ServiciosTransporte.Gestion.Dto.ParadaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaSugerenciaDto;
-import com.ServiciosTransporte.Gestion.DtoUpdate.ParadaUpdateDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Paradas.ParadaLiteDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Paradas.ParadaSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoActualizacion.ParadaUpdateDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioParada;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/Parada/v1")
+@RequestMapping("/api/v1/admin/paradas")
+@RequiredArgsConstructor
 public class ControladorParada {
 
-    @Autowired
-    ServicioParada servicioParada;
+    private final ServicioParada servicioParada;
 
-    @PostMapping("/registrar")
+    @PostMapping
     public ResponseEntity<ParadaLiteDto> registrarParada(@Valid @RequestBody ParadaDto paradaDto){
         ParadaLiteDto paradaRegistrada = servicioParada.registrarParada(paradaDto);
         return new ResponseEntity<>(paradaRegistrada, HttpStatus.CREATED);
@@ -32,26 +32,26 @@ public class ControladorParada {
         return ResponseEntity.ok(parada);
     }
 
-    @GetMapping("/sugerencia")
+    @GetMapping("/sugerencias")
     public ResponseEntity<List<ParadaSugerenciaDto>> sugerirParada(@RequestParam("nombre") String nombre){
         List<ParadaSugerenciaDto> sugerencias = servicioParada.sugerirParada(nombre);
         return ResponseEntity.ok(sugerencias);
     }
 
-    @GetMapping("/listar")
+    @GetMapping
     public ResponseEntity<List<ParadaLiteDto>> listarTodo(){
         List<ParadaLiteDto> paradas = servicioParada.listarTodo();
         return ResponseEntity.ok(paradas);
     }
 
-    @PatchMapping("/actualizar/{id}")
-    public ResponseEntity<ParadaLiteDto> actualizarParada
-            (@PathVariable Long id, @Valid @RequestBody ParadaUpdateDto updateDto){
-        ParadaLiteDto actualizada = servicioParada.actualizarParada(id,updateDto);
+    @PatchMapping("/{id}")
+    public ResponseEntity<ParadaLiteDto> actualizarParada(
+            @PathVariable Long id, @Valid @RequestBody ParadaUpdateDto updateDto){
+        ParadaLiteDto actualizada = servicioParada.actualizarParada(id, updateDto);
         return ResponseEntity.ok(actualizada);
     }
 
-    @DeleteMapping("/eliminar/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarParada(@PathVariable Long id){
         servicioParada.softDeleteParada(id);
         return ResponseEntity.noContent().build();

@@ -1,22 +1,22 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
 import com.ServiciosTransporte.Gestion.Dto.VehiculoAsignacionDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Asignaciones.AsignacionLiteDto;
-import com.ServiciosTransporte.Gestion.DtoUpdate.AsignacionUpdateDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Asignaciones.AsignacionLiteDto;
+import com.ServiciosTransporte.Gestion.DtoActualizacion.AsignacionUpdateDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioVehiculoAsignacion;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/Asignacion/v1")
+@RequestMapping("/api/v1/admin/asignaciones")
+@RequiredArgsConstructor
 public class ControladorVehiculoAsignacion {
 
-    @Autowired
-    private ServicioVehiculoAsignacion servicioVehiculoAsignacion;
+    private final ServicioVehiculoAsignacion servicioVehiculoAsignacion;
 
     @PostMapping
     public ResponseEntity<AsignacionLiteDto> asignarConductorAVehiculo(@Valid @RequestBody VehiculoAsignacionDto vadto) {
@@ -24,7 +24,7 @@ public class ControladorVehiculoAsignacion {
         return new ResponseEntity<>(asignacion, HttpStatus.CREATED);
     }
 
-    @GetMapping("/listar")
+    @GetMapping
     public ResponseEntity<List<AsignacionLiteDto>> listarTodo(){
         List<AsignacionLiteDto> asignaciones = servicioVehiculoAsignacion.listarTodo();
         return ResponseEntity.ok(asignaciones);
@@ -36,14 +36,14 @@ public class ControladorVehiculoAsignacion {
         return ResponseEntity.ok(asignacion);
     }
 
-    @PatchMapping("/actualizar/{id}")
-    public ResponseEntity<AsignacionLiteDto> actualizarAsignacion
-            (@PathVariable Long id, @RequestBody @Valid AsignacionUpdateDto updateDto){
-        AsignacionLiteDto actualizada = servicioVehiculoAsignacion.actualizarAsignacion(id,updateDto);
+    @PatchMapping("/{id}")
+    public ResponseEntity<AsignacionLiteDto> actualizarAsignacion(
+            @PathVariable Long id, @RequestBody @Valid AsignacionUpdateDto updateDto){
+        AsignacionLiteDto actualizada = servicioVehiculoAsignacion.actualizarAsignacion(id, updateDto);
         return ResponseEntity.ok(actualizada);
     }
 
-    @DeleteMapping("/eliminar/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarAsignacion(@PathVariable Long id){
         servicioVehiculoAsignacion.softDeleteAsignacion(id);
         return ResponseEntity.noContent().build();

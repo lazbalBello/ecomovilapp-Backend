@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/Auditoria/v1")
+@RequestMapping("/api/v1/admin/auditorias")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('admin') or hasRole('ADMIN')")
 public class ControladorAuditoria {
@@ -24,7 +24,7 @@ public class ControladorAuditoria {
      * Consulta paginada y filtrada del histórico de auditorías del sistema.
      * Accessible solo por usuarios con rol de administrador.
      */
-    @GetMapping("/listar")
+    @GetMapping
     public ResponseEntity<Page<AuditoriaResponseDto>> obtenerAuditorias(
             AuditoriaFilterDto filtro,
             @PageableDefault(size = 20, sort = "fechaOperacion", direction = Sort.Direction.DESC) Pageable pageable

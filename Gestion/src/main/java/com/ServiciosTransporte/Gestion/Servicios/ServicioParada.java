@@ -3,19 +3,15 @@ package com.ServiciosTransporte.Gestion.Servicios;
 import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
 import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.ParadaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaSugerenciaDto;
-import com.ServiciosTransporte.Gestion.DtoUpdate.ParadaUpdateDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Paradas.ParadaLiteDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Paradas.ParadaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Paradas.ParadaSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoActualizacion.ParadaUpdateDto;
 import com.ServiciosTransporte.Gestion.Mappers.ParadaMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.ParadaLiteDtoMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.ParadaMapaDtoMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.ParadaSugerenciaDtoMapper;
 import com.ServiciosTransporte.Gestion.Modelos.Parada;
 import com.ServiciosTransporte.Gestion.Modelos.Ruta;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioParada;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioRuta;
-import com.ServiciosTransporte.Gestion.MappersUpdate.ParadaUpdateDtoMaper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,49 +29,45 @@ public class ServicioParada {
 
     private final IRepositorioParada repositorioParada;
     private final ParadaMapper paradaMapper;
-    private final ParadaLiteDtoMapper paradaLiteDtoMapper;
     private final IRepositorioRuta repositorioRuta;
-    private final ParadaSugerenciaDtoMapper paradaSugerenciaDtoMapper;
-    private final ParadaUpdateDtoMaper paradaUpdateDtoMaper;
-    private final ParadaMapaDtoMapper paradaMapaDtoMapper;
 
     @Transactional
     @Auditable(tabla = "parada", operacion = TipoOperacion.CREACION, entidad = Parada.class)
     @CacheEvict(value = "gestion:paradas", allEntries = true)
     public ParadaLiteDto registrarParada(ParadaDto paradaDto){
         Parada parada = paradaMapper.toParada(paradaDto);
-        Ruta ruta = repositorioRuta.findById(paradaDto.getRutaID())
+        Ruta ruta = repositorioRuta.findById(paradaDto.rutaID())
                 .orElseThrow(()-> new EntityNotFoundException("Ruta no encontrada"));
         parada.setRuta(ruta);
         Parada paradaGuardada = repositorioParada.save(parada);
-        return paradaLiteDtoMapper.toParadaLiteDto(paradaGuardada);
+        return paradaMapper.toParadaLiteDto(paradaGuardada);
     }
 
     public ParadaLiteDto buscarPorId(Long id){
         Parada parada = repositorioParada.findById(id)
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "No se encontró la parada con el id " + id));
-        return paradaLiteDtoMapper.toParadaLiteDto(parada);
+        return paradaMapper.toParadaLiteDto(parada);
     }
 
     public List<ParadaSugerenciaDto> sugerirParada(String nombre){
         List<Parada> paradas = repositorioParada.findByNombreContainingIgnoreCase(nombre);
         return paradas.stream()
-                .map(paradaSugerenciaDtoMapper::toParadaSugerenciaDto)
+                .map(paradaMapper::toParadaSugerenciaDto)
                 .collect(Collectors.toList());
     }
 
     public List<ParadaLiteDto> listarTodo(){
         List<Parada> rutas = repositorioParada.findAll();
         return rutas.stream()
-                .map(paradaLiteDtoMapper::toParadaLiteDto)
+                .map(paradaMapper::toParadaLiteDto)
                 .collect(Collectors.toList());
     }
 
     public List<ParadaMapaDto> listarParaMapa(){
         List<Parada> rutas = repositorioParada.findAll();
         return rutas.stream()
-                .map(paradaMapaDtoMapper::toParadaMapaDto)
+                .map(paradaMapper::toParadaMapaDto)
                 .collect(Collectors.toList());
 
     }
@@ -86,21 +78,21 @@ public class ServicioParada {
     public ParadaLiteDto actualizarParada(Long id, ParadaUpdateDto updateDto){
         Parada parada = repositorioParada.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró la parada con el id " + id));
-        if (updateDto.getRutaID() != null){
-            Ruta ruta = repositorioRuta.findById(updateDto.getRutaID())
+        if (updateDto.rutaID() != null){
+            Ruta ruta = repositorioRuta.findById(updateDto.rutaID())
                     .orElseThrow(()-> new EntityNotFoundException("Ruta no encontrada"));
             parada.setRuta(ruta);
         }
-        paradaUpdateDtoMaper.updateParadaFromDto(updateDto,parada);
+        paradaMapper.updateParadaFromDto(updateDto,parada);
         Parada actualizada = repositorioParada.save(parada);
-        return paradaLiteDtoMapper.toParadaLiteDto(actualizada);
+        return paradaMapper.toParadaLiteDto(actualizada);
     }
 
     /** Devuelve todas las paradas que han sido eliminadas (soft delete). */
     @Transactional
     public List<ParadaLiteDto> listarEliminadas(){
         return repositorioParada.findAllEliminadas().stream()
-                .map(paradaLiteDtoMapper::toParadaLiteDto)
+                .map(paradaMapper::toParadaLiteDto)
                 .collect(Collectors.toList());
     }
 

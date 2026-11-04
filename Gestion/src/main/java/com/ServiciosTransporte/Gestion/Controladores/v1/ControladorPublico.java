@@ -1,11 +1,11 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.PublicoEstadisticasDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Paradas.ParadaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Rutas.RutaMapaDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Vehiculos.VehiculoPublicoDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.PublicoEstadisticasDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Paradas.ParadaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Rutas.RutaMapaDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Vehiculos.VehiculoPublicoDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioEstadisticasPublicas;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,25 +14,25 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/public/v1")
+@RequestMapping("/api/v1/publico")
+@RequiredArgsConstructor
 public class ControladorPublico {
 
-   @Autowired
-   ServicioEstadisticasPublicas servicioEstadisticasPublicas;
+    private final ServicioEstadisticasPublicas servicioEstadisticasPublicas;
 
-    @GetMapping("/vehiculo/listartodo")
+    @GetMapping("/vehiculos")
     public ResponseEntity<List<VehiculoPublicoDto>> obtenerVehiculosPublicos(){
-        return  ResponseEntity.ok(servicioEstadisticasPublicas.listarVehiculosPublico());
+        return ResponseEntity.ok(servicioEstadisticasPublicas.listarVehiculosPublico());
     }
 
     @GetMapping("/estadisticas/vehiculos-activos")
     public ResponseEntity<Long> obtenerVehiculosActivos() {
-        return ResponseEntity.ok(servicioEstadisticasPublicas.obtenerEstadisticasPublicas().getVehiculosActivos());
+        return ResponseEntity.ok(servicioEstadisticasPublicas.obtenerEstadisticasPublicas().vehiculosActivos());
     }
 
     @GetMapping("/estadisticas/rutas-activas")
     public ResponseEntity<Long> obtenerRutasActivas() {
-        return ResponseEntity.ok(servicioEstadisticasPublicas.obtenerEstadisticasPublicas().getRutasActivas());
+        return ResponseEntity.ok(servicioEstadisticasPublicas.obtenerEstadisticasPublicas().rutasActivas());
     }
 
     @GetMapping("/estadisticas")

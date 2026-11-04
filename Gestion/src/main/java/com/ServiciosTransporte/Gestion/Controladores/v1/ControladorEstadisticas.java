@@ -1,25 +1,23 @@
 package com.ServiciosTransporte.Gestion.Controladores.v1;
 
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasAsignacionesDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasConductoresDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasResumenDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasRutasDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Estadisticas.EstadisticasVehiculosDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasAsignacionesDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasConductoresDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasResumenDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasRutasDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Estadisticas.EstadisticasVehiculosDto;
 import com.ServiciosTransporte.Gestion.Servicios.ServicioEstadisticas;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/admin/Estadisticas/v1")
+@RequestMapping("/api/v1/admin/estadisticas")
+@RequiredArgsConstructor
 public class ControladorEstadisticas {
 
     private final ServicioEstadisticas servicioEstadisticas;
-
-    public ControladorEstadisticas(ServicioEstadisticas servicioEstadisticas) {
-        this.servicioEstadisticas = servicioEstadisticas;
-    }
 
     @GetMapping("/resumen")
     public ResponseEntity<EstadisticasResumenDto> obtenerResumen() {

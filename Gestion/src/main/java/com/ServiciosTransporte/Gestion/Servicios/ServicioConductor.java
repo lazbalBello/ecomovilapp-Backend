@@ -3,16 +3,13 @@ package com.ServiciosTransporte.Gestion.Servicios;
 import com.ServiciosTransporte.Gestion.Auditoria.Anotaciones.Auditable;
 import com.ServiciosTransporte.Gestion.Auditoria.Modelos.TipoOperacion;
 import com.ServiciosTransporte.Gestion.Dto.ConductorDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Conductores.ConductorLiteDto;
-import com.ServiciosTransporte.Gestion.DtoResponse.Conductores.ConductorSugerenciaDto;
-import com.ServiciosTransporte.Gestion.DtoUpdate.ConductorUpdateDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Conductores.ConductorLiteDto;
+import com.ServiciosTransporte.Gestion.DtoRespuesta.Conductores.ConductorSugerenciaDto;
+import com.ServiciosTransporte.Gestion.DtoActualizacion.ConductorUpdateDto;
 import com.ServiciosTransporte.Gestion.Mappers.ConductorMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.ConductorLiteDtoMapper;
-import com.ServiciosTransporte.Gestion.MappersResponse.ConductorSugerenciaDtoMapper;
 import com.ServiciosTransporte.Gestion.Modelos.Conductor;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioConductor;
 import com.ServiciosTransporte.Gestion.Repositorios.IRepositorioVehiculoAsignacion;
-import com.ServiciosTransporte.Gestion.MappersUpdate.ConductorUpdateDtoMapper;
 import com.servicioTransporte.flota.eventos.conductor.eliminar.ConductorEliminado;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -34,9 +31,6 @@ public class ServicioConductor {
 
     private final IRepositorioConductor repositorioConductor;
     private final ConductorMapper conductorMapper;
-    private final ConductorLiteDtoMapper conductorLiteDtoMapper;
-    private final ConductorSugerenciaDtoMapper conductorSugerenciaDtoMapper;
-    private final ConductorUpdateDtoMapper conductorUpdateDtoMapper;
     private final IRepositorioVehiculoAsignacion repositorioVehiculoAsignacion;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -53,13 +47,13 @@ public class ServicioConductor {
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "No se encontró el conductor con el dni" + dni));
 
-        return conductorLiteDtoMapper.toConductorLiteDto(conductor);
+        return conductorMapper.toConductorLiteDto(conductor);
     }
 
     public List<ConductorLiteDto> filtrarPorDni(String dni){
         List<Conductor> conductores = repositorioConductor.findByDniContainingIgnoreCase(dni);
         return conductores.stream()
-                .map(conductorLiteDtoMapper::toConductorLiteDto)
+                .map(conductorMapper::toConductorLiteDto)
                 .collect(Collectors.toList());
     }
 
@@ -73,7 +67,7 @@ public class ServicioConductor {
     public List<ConductorSugerenciaDto> sugerirNombreYApellidos(String query){
          List<Conductor> conductores = repositorioConductor.findByNombreContainingIgnoreCaseOrApellidosContainingIgnoreCase(query, query);
          return conductores.stream()
-                 .map(conductorSugerenciaDtoMapper::toConductorSugerenciaDto)
+                 .map(conductorMapper::toConductorSugerenciaDto)
                  .collect(Collectors.toList());
     }
 
@@ -81,13 +75,13 @@ public class ServicioConductor {
         Conductor conductor = repositorioConductor.findById(Id)
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "No se enctró el conductor con el id " + Id));
-        return conductorLiteDtoMapper.toConductorLiteDto(conductor);
+        return conductorMapper.toConductorLiteDto(conductor);
     }
 
     public List<ConductorLiteDto> listarTodo(){
         List<Conductor> conductores = repositorioConductor.findAll();
         return conductores.stream()
-                .map(conductorLiteDtoMapper::toConductorLiteDto)
+                .map(conductorMapper::toConductorLiteDto)
                 .collect(Collectors.toList());
     }
 
@@ -97,29 +91,29 @@ public class ServicioConductor {
         Conductor conductor = repositorioConductor.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("No se encontró el conductor con el id " + id));
 
-        if (updateDto.getDni() != null && !updateDto.getDni().trim().isEmpty()
-                && !updateDto.getDni().trim().equalsIgnoreCase(conductor.getDni())) {
-            repositorioConductor.findByDni(updateDto.getDni().trim())
+        if (updateDto.dni() != null && !updateDto.dni().trim().isEmpty()
+                && !updateDto.dni().trim().equalsIgnoreCase(conductor.getDni())) {
+            repositorioConductor.findByDni(updateDto.dni().trim())
                     .ifPresent(otro -> {
                         if (!otro.getId().equals(id)) {
                             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                                    "Ya existe un conductor con el DNI: " + updateDto.getDni().trim());
+                                    "Ya existe un conductor con el DNI: " + updateDto.dni().trim());
                         }
                     });
         }
 
-        conductorUpdateDtoMapper.updateConductorFromDto(updateDto,conductor);
-        if (updateDto.getCategoriasLicencia() != null)
-            conductor.getCategoriasLicencia().addAll(updateDto.getCategoriasLicencia());
+        conductorMapper.updateConductorFromDto(updateDto,conductor);
+        if (updateDto.categoriasLicencia() != null)
+            conductor.getCategoriasLicencia().addAll(updateDto.categoriasLicencia());
         Conductor actualizado = repositorioConductor.save(conductor);
-        return conductorLiteDtoMapper.toConductorLiteDto(actualizado);
+        return conductorMapper.toConductorLiteDto(actualizado);
     }
 
     /** Devuelve todos los conductores que han sido eliminados (soft delete). */
     @Transactional
     public List<ConductorLiteDto> listarEliminados(){
         return repositorioConductor.findAllEliminados().stream()
-                .map(conductorLiteDtoMapper::toConductorLiteDto)
+                .map(conductorMapper::toConductorLiteDto)
                 .collect(Collectors.toList());
     }
 
